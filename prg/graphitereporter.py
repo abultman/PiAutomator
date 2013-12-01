@@ -8,7 +8,7 @@ class GraphiteReporter(object):
     self.config = config
 
   def __getG(self):
-    if not self.g:
+    if not self.g and bool(self.config.getSetting(['graphite', 'enabled'])):
       try: 
         self.g = GraphiteClient(prefix='home', group='%s.'%self.type, graphite_server=self.config.getSetting(['graphite','host']))
       except:
