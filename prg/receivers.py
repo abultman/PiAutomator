@@ -1,4 +1,6 @@
-import subprocess, logging
+import subprocess, logging, threading, Queue
+
+jobqueue = Queue.Queue()
 
 class Receiver(object):
   def __init__(self, name, config, settings):
@@ -12,8 +14,8 @@ class Receiver(object):
       command = "%s/tools/%s" % (self.config.get_basedir(), self.settings['type'])
       args = "%s %s" % (self.settings['command'], switch)
       toexec = "%s %s" % (command, args)
-      subprocess.call(toexec, shell=True)
-      logging.info("Turned %s %s" % (self.name, switch))
+      jobqueue.put(toexec)
+      logging.warn("Turned %s %s" % (self.name, switch))
     self.state = switch
 
   def off(self):
@@ -29,7 +31,17 @@ def init(config):
   for name in receivers:
     _receivers[name] = Receiver(name, config, receivers[name])
 
+  worker_thread = threading.Thread(target=__worker_main__)
+  worker_thread.daemon = True
+  worker_thread.start()
+
   return _receivers
+
+def __worker_main__():
+  while True:
+    toexec = jobqueue.get()
+    logging.warn(toexec)
+    subprocess.call(toexec, shell=True)
 
 def receiver(name):
   return _receivers[name]

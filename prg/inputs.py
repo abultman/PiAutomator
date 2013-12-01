@@ -60,7 +60,6 @@ jobqueue = Queue.Queue()
 def __worker_main__():
   while True:
     jobqueue.get()()
-    print 1
 
 def init(config):
   g = GraphiteReporter(config)

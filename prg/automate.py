@@ -6,7 +6,7 @@ from timeout import timeout, TimeoutError
 from graphitereporter import GraphiteReporter
 from config import AutomationConfig
 
-logging.basicConfig(level=logging.INFO, format = '%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(message)s')
 basedir = os.path.normpath("%s/.." % (os.path.dirname(os.path.abspath(__file__))))
 config = AutomationConfig(basedir)
 
@@ -33,12 +33,3 @@ schedule.every(5).seconds.do(checkrules)
 while(running):
   schedule.run_pending()
   time.sleep(1)
-#    read = readData()
-#    if read: 
-#        if read[1] < 55:
-#          receiver('homefan').off()
-#        elif read[1] > 58:
-#          receiver('homefan').on()
-#
-#        g.send('bathroom.temperature', read[0])
-#        g.send('bathroom.humidity', read[1])
