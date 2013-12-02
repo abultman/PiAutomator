@@ -67,7 +67,7 @@ class Rule(object):
 
 class ConditionalRule(Rule):
   def __init__(self, rulename, data, inputs, receivers):
-    super(ConditionalRule, self).__init__(data, inputs, receivers)
+    super(ConditionalRule, self).__init__(rulename, data, inputs, receivers)
     self.conditions = [Condition(condition) for condition in data['conditions']]
 
   def matches(self):
