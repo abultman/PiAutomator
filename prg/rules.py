@@ -1,3 +1,4 @@
+import logging
 from pyparsing import *
 import schedule
 
@@ -44,7 +45,7 @@ class Condition(object):
     return "%s" % self.data
 
 class Rule(object):
-  def __init__(self, data, inputs, receivers):
+  def __init__(self, rulename, data, inputs, receivers):
     self.actions = [Action(action) for action in data['actions']]
     self.receivers = receivers
     self.inputs = inputs
@@ -52,7 +53,11 @@ class Rule(object):
     self.overrideOff = False
     if self.override and data["override"] == 'off':
       self.overrideOff = True
-    print "override = %s" % self.override
+      logging.warn("rule '%s' has override configuration and will turn a possible override state off" % rulename)
+    elif self.override:
+      logging.warn("rule '%s' has override configuration and will turn a possible override state on" % rulename)
+
+    self.rulename = rulename
 
   def matches(self):
     return False
@@ -61,7 +66,7 @@ class Rule(object):
     all(action.perform(self.receivers, self.override, self.overrideOff) for action in self.actions)
 
 class ConditionalRule(Rule):
-  def __init__(self, data, inputs, receivers):
+  def __init__(self, rulename, data, inputs, receivers):
     super(ConditionalRule, self).__init__(data, inputs, receivers)
     self.conditions = [Condition(condition) for condition in data['conditions']]
 
@@ -72,24 +77,23 @@ class ConditionalRule(Rule):
     return "actions %s\nconditions %s" % (self.actions, self.conditions)
 
 class ScheduleRule(Rule):
-  def __init__(self, data, inputs, receivers):
-    super(ScheduleRule, self).__init__(data, inputs, receivers)
+  def __init__(self, rulename, data, inputs, receivers):
+    super(ScheduleRule, self).__init__(rulename, data, inputs, receivers)
     if "pluralSchedule" in data.keys():
       schedule_data = data['pluralSchedule']
       toeval = "schedule.every(%s).%s" % (schedule_data['count'], schedule_data['unit'])
       if "time" in schedule_data.keys():
         toeval = "%s.at('%s')" %(toeval, schedule_data["time"])
-      print toeval
-      schedule_builder = eval(toeval).do(self.performActions)
-      print schedule_builder
+      eval(toeval).do(self.performActions)
     else:
       schedule_data = data['singularSchedule']
       toeval = "schedule.every().%s" % (schedule_data['unit'])
       if "time" in schedule_data.keys():
         toeval = "%s.at('%s')" %(toeval, schedule_data["time"])
-      print toeval
-      schedule_builder = eval(toeval).do(self.performActions)
-      print schedule_builder
+      eval(toeval).do(self.performActions)
+
+  def __str__(self):
+    return "actions %s" % (self.actions)
 
 
 class RuleParser(object):
@@ -137,19 +141,20 @@ class RuleParser(object):
       recurring2 = Group(every + number.setResultsName("count") + oneOf("days hours seconds weeks").setResultsName("unit") + Optional(timeIndication)).setResultsName("pluralSchedule")
       recurring1 = Group(every + oneOf("day hour second week").setResultsName("unit") + Optional(timeIndication)).setResultsName("singularSchedule")
 
-      return (recurring1 | recurring2) + actions + Optional(override).setResultsName("override")
+      return (recurring1 | recurring2) + actions + Optional(override + Optional("off")).setResultsName("override")
 
     self.rule = receiver_input_rule() | schedule_rule()
 
 
   def rawParse(self, toParse):
     return self.rule.parseString(toParse)
+
   def parse(self, toParse, inputs, receivers):
     raw_parse = self.rawParse(toParse)
     if "conditions" in raw_parse.keys():
-      return ConditionalRule(raw_parse, inputs, receivers)
+      return ConditionalRule(toParse, raw_parse, inputs, receivers)
     else:
-      return ScheduleRule(raw_parse, inputs, receivers)
+      return ScheduleRule(toParse, raw_parse, inputs, receivers)
 
 def init(config, inputs, receivers):
   parser = RuleParser()
@@ -178,5 +183,3 @@ class MatchingRules(object):
         if rule.matches(): yield rule
 
     return MatchingRules(rulesMatchingInputs(), self.inputs, self.receivers)
-
-print RuleParser().parse("every day at 20:32 turn homefan on override", [],[])
