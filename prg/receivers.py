@@ -27,10 +27,14 @@ class Receiver(object):
         logging.warn("Turned %s %s" % (self.name, switch))
       self.state = switch
     else:
-      logging.warn("Receiver %s is in override mode, only rules with override can change it's state now" % self.name)
+      logging.debug("Receiver %s is in override mode, only rules with override can change it's state now" % self.name)
 
   def setOverrideMode(self, override):
     self.overrideMode = override
+    if override:
+      logging.warn("Receiver %s just went into override mode" % self.name)
+    else:
+      logging.warn("Receiver %s just went out of override mode" % self.name)
 
   def supported_states(self):
     return ["off", "on"]
