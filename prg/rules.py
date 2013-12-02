@@ -45,7 +45,7 @@ class Rule(object):
     self.receivers = receivers
     self.inputs = inputs
     self.override = "override" in data
-    print "override"
+    print "override = %s" % self.override 
 
   def matches(self):
     return False
