@@ -15,15 +15,19 @@ class Receiver(object):
     self.config = config
     self.state = None
     self.g = g
+    self.overrideMode = False
 
-  def do(self, switch):
+  def do(self, switch, override = False):
     if (switch not in self.supported_states()):
       raise StateError("Illegal state passed to set. %s not in %s" %(switch, self.supported_states()))
 
-    if self.state != switch or self.state == None:
-      self._setState(switch)
-      logging.warn("Turned %s %s" % (self.name, switch))
-    self.state = switch
+    if override or not self.overrideMode:
+      if self.state != switch or self.state == None:
+        self._setState(switch)
+        logging.warn("Turned %s %s" % (self.name, switch))
+      self.state = switch
+    else:
+      logging.warn("Receiver %s is in override mode, only rules with override can change it's state now" % self.name)
 
   def supported_states(self):
     return ["off", "on"]

@@ -13,9 +13,9 @@ class Action(object):
     self.state = data['state']
     self.data = data
 
-  def perform(self, receivers):
+  def perform(self, receivers, override = False):
     receiver = receivers[self.receiver]
-    receiver.do(self.state)
+    receiver.do(self.state, override)
   
   def __str__(self):
     return "%s" % self.data
@@ -44,12 +44,14 @@ class Rule(object):
     self.actions = [Action(action) for action in data['actions']]
     self.receivers = receivers
     self.inputs = inputs
+    self.override = "override" in data
+    print "override"
 
   def matches(self):
     return False
 
   def performActions(self):
-    all(action.perform(self.receivers) for action in self.actions)
+    all(action.perform(self.receivers, self.override) for action in self.actions)
 
 class ConditionalRule(Rule):
   def __init__(self, data, inputs, receivers):
@@ -91,6 +93,7 @@ class RuleParser(object):
     _and = Suppress("and")
     then = Suppress("then")
     when = Suppress("when")
+    override = Suppress("override")
     every = Suppress("every")
     at = Suppress("at")
     word = Word(alphas + nums)
@@ -127,7 +130,7 @@ class RuleParser(object):
       recurring2 = Group(every + number.setResultsName("count") + oneOf("days hours seconds weeks").setResultsName("unit") + Optional(timeIndication)).setResultsName("pluralSchedule")
       recurring1 = Group(every + oneOf("day hour second week").setResultsName("unit") + Optional(timeIndication)).setResultsName("singularSchedule")
 
-      return (recurring1 | recurring2) + actions
+      return (recurring1 | recurring2) + actions + Optional(override).setResultsName("override")
 
     self.rule = receiver_input_rule() | schedule_rule()
 
@@ -168,3 +171,5 @@ class MatchingRules(object):
         if rule.matches(): yield rule
 
     return MatchingRules(rulesMatchingInputs(), self.inputs, self.receivers)
+
+print RuleParser().parse("every day at 20:32 turn homefan on override", [],[])
