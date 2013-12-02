@@ -13,8 +13,12 @@ class Action(object):
     self.state = data['state']
     self.data = data
 
-  def perform(self, receivers, override = False):
+  def perform(self, receivers, override = False, overrideOff = False):
     receiver = receivers[self.receiver]
+    if overrideOff:
+      receiver.setOverrideMode(False)
+    elif override:
+      receiver.setOverrideMode(True)
     receiver.do(self.state, override)
   
   def __str__(self):
@@ -45,13 +49,16 @@ class Rule(object):
     self.receivers = receivers
     self.inputs = inputs
     self.override = "override" in data
-    print "override = %s" % self.override 
+    self.overrideOff = False
+    if self.override and data["override"] == 'off':
+      self.overrideOff = True
+    print "override = %s" % self.override
 
   def matches(self):
     return False
 
   def performActions(self):
-    all(action.perform(self.receivers, self.override) for action in self.actions)
+    all(action.perform(self.receivers, self.override, self.overrideOff) for action in self.actions)
 
 class ConditionalRule(Rule):
   def __init__(self, data, inputs, receivers):

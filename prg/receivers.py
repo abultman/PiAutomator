@@ -29,6 +29,9 @@ class Receiver(object):
     else:
       logging.warn("Receiver %s is in override mode, only rules with override can change it's state now" % self.name)
 
+  def setOverrideMode(self, override):
+    self.overrideMode = override
+
   def supported_states(self):
     return ["off", "on"]
 
