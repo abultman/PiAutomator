@@ -51,7 +51,7 @@ class Rule(object):
     self.inputs = inputs
     self.override = "override" in data
     self.overrideOff = False
-    if self.override and data["override"] == 'off':
+    if self.override and len(data["override"]) == 1:
       self.overrideOff = True
       logging.warn("rule '%s' has override configuration and will turn a possible override state off" % rulename)
     elif self.override:
