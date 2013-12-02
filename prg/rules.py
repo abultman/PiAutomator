@@ -72,8 +72,16 @@ class ScheduleRule(Rule):
         toeval = "%s.at('%s')" %(toeval, schedule_data["time"])
       print toeval
       schedule_builder = eval(toeval).do(self.performActions)
-      print schedule_data['unit']
       print schedule_builder
+    else:
+      schedule_data = data['singularSchedule']
+      toeval = "schedule.every().%s" % (schedule_data['unit'])
+      if "time" in schedule_data.keys():
+        toeval = "%s.at('%s')" %(toeval, schedule_data["time"])
+      print toeval
+      schedule_builder = eval(toeval).do(self.performActions)
+      print schedule_builder
+
 
 class RuleParser(object):
   def __init__(self):
