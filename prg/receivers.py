@@ -14,14 +14,14 @@ class Receiver(object):
     self.name = name
     self.config = config
     self.state = None
-    self.state = g
+    self.g = g
 
   def do(self, switch):
     if (switch not in self.supported_states()):
       raise StateError("Illegal state passed to set. %s not in %s" %(switch, self.supported_states()))
 
     if self.state != switch or self.state == None:
-      self.setState(switch)
+      self._setState(switch)
       logging.warn("Turned %s %s" % (self.name, switch))
     self.state = switch
 
@@ -31,25 +31,27 @@ class Receiver(object):
   def current_state(self):
     return self.state
 
-  def _sendForReporting(self, g):
-    value = self.supported_states().index(self.current_state())
-    g.send(self.name, value)
+  def _sendForReporting(self):
+    value = -1
+    if self.state:
+      value = self.supported_states().index(self.current_state())
+    self.g.send(self.name, value)
 
   def _setState(self, state):
     None
 
 class ToolCommandReceiver(Receiver):
-  def __init__(self, name, config, settings):
-    super(ToolCommandReceiver, self).__init__(name, config, settings)
+  def __init__(self, name, config, settings, g):
+    super(ToolCommandReceiver, self).__init__(name, config, settings, g)
 
   def _setState(self, state):
-    command = "%s/tools/%s" % (self.config.get_basedir(), self.settings['type'])
-    args = "%s %s" % (self.settings['command'], state)
+    command = "%s/tools/%s" % (self.config.get_basedir(), self.settings['command'])
+    args = "%s %s" % (self.settings['args'], state)
     toexec = "%s %s" % (command, args)
     jobqueue.put(toexec)
 
 def init(config):
-  g = GraphiteReporter(type = "receivers")
+  g = GraphiteReporter(config, "receivers")
   global _receivers
   _receivers = {}
   receivers = config.receivers()
@@ -66,7 +68,7 @@ def init(config):
 
 def __graphiteReporter__():
   for receiver in _receivers:
-    receiver._sendForReporting()
+    _receivers[receiver]._sendForReporting()
 
 
 def __worker_main__():

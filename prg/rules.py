@@ -45,7 +45,7 @@ class Rule(object):
     self.receivers = receivers
     self.inputs = inputs
 
-  def matches(self, inputs):
+  def matches(self):
     return False
 
   def performActions(self):
@@ -151,11 +151,11 @@ class MatchingRules(object):
 
   def andPerformTheirActions(self, receivers):
     for rule in self.matchingRules:
-      rule.performActions(receivers)
+      rule.performActions()
 
   def findMatchingRules(self, inputs):
     def rulesMatchingInputs():
       for rule in _rules:
-        if rule.matches(inputs): yield rule
+        if rule.matches(): yield rule
 
-    return MatchingRules(rulesMatchingInputs())
+    return MatchingRules(rulesMatchingInputs(), self.inputs, self.receivers)
