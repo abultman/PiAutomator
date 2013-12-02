@@ -1,6 +1,5 @@
 import dhtreader, threading, Queue, schedule, logging
 from timeout import timeout, TimeoutError
-from config import AutomationConfig
 from graphitereporter import GraphiteReporter
 
 class AnInput(object):

@@ -8,8 +8,9 @@ graphite:
 
 receivers:
   homefan:
-    type: kaku
-    command: A 1
+    type: ToolCommandReceiver
+    command: kaku
+    args: A 1
 
 inputs:
   bathroom:
@@ -19,3 +20,5 @@ inputs:
 rules:
   - when bathroom.humidity is greater than 57 then turn homefan on
   - when bathroom.humidity is less than 55 then turn homefan off
+  - every day at 22:00 turn homefan on
+  - every day at 22:01 turn homefan off
