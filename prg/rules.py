@@ -145,6 +145,8 @@ def init(config, inputs, receivers):
   parser = RuleParser()
   global _rules
   _rules = [parser.parse(rule, inputs, receivers) for rule in config.rules()]
+  topLevelRules = MatchingRules(_rules, inputs, receivers)
+  schedule.every(5).seconds.do(topLevelRules.checkrules)
   return MatchingRules(_rules, inputs, receivers)
 
 class MatchingRules(object):
@@ -152,7 +154,6 @@ class MatchingRules(object):
     self.matchingRules = matchingRules
     self.receivers = receivers
     self.inputs = inputs
-    schedule.every(5).seconds.do(self.checkrules)
 
   def checkrules(self):
     self.findMatchingRules(self.inputs).andPerformTheirActions(self.receivers)
