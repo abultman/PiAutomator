@@ -9,11 +9,7 @@ import receivers
 import inputs
 import schedule
 import rules
-import sys
 from config import AutomationConfig
-
-sys.path.append('/some/dir')
-print sys.path
 
 logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(message)s')
 basedir = os.path.normpath("%s/.." % (os.path.dirname(os.path.abspath(__file__))))
