@@ -126,8 +126,8 @@ class RuleParser(object):
       metric = word.setResultsName("metric")
       sensormetric = sensor + dot + metric
 
-      operator = oneOf(["greater than", "less than"]).setResultsName("operator")
-      value = number.setResultsName("value")
+      operator = oneOf(_operators.keys()).setResultsName("operator")
+      value = (word | '".*"').setResultsName("value")
       comparison = operator + value
 
       condition = Group(sensormetric + _is + comparison)
