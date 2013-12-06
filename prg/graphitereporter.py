@@ -1,3 +1,4 @@
+import logging
 from graphitesend import GraphiteClient
 import sys
 
@@ -18,8 +19,7 @@ class GraphiteReporter(object):
         self.g = GraphiteClient(prefix='home', group='%s.'%self.type, graphite_server=self.config.getSetting(['graphite','host']))
       except:
         e = sys.exc_info()
-        print "Unable to establish Graphite connection"
-        print e
+        logging.error("Unable to establish Graphite connection")
         self.g = None
     return self.g
   
@@ -39,7 +39,7 @@ class GraphiteReporter(object):
         g.send_dict(data, timestamp)
       except:
         self.__destroyG()
-        print "Error sending to graphite"
+        logging.error("Error sending to graphite")
 
   def send(self, metric, value, timestamp=None):
     g = self.__getG()
@@ -48,4 +48,4 @@ class GraphiteReporter(object):
         g.send(metric, value, timestamp)
       except:
         self.__destroyG()
-        print "Error sending to graphite"
+        logging.error("Error sending to graphite")
