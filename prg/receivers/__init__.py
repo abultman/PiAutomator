@@ -1,13 +1,7 @@
-import Queue
-import threading
 import logging
-import subprocess
-
 import schedule
 
 from graphitereporter import *
-
-
 __myclasses__ = {}
 
 __logger__ = logging.getLogger("recievers")
@@ -24,25 +18,31 @@ def __load_receiver__(elem, config):
 
   return __myclasses__[elem]
 
-__author__ = 'administrator'
-
 def init(config):
   g = GraphiteReporter(config, "receivers")
-  global _receivers
-  _receivers = {}
+  receiverInstances = Receivers()
   receivers = config.receivers()
   for name in receivers:
     my_class = __load_receiver__(receivers[name]['type'], config)
-    _receivers[name] = my_class(name, config, receivers[name], g)
+    receiverInstances.addReceiver(my_class(name, config, receivers[name], g))
 
-  schedule.every(10).seconds.do(__graphiteReporter__)
+  schedule.every(10).seconds.do(receiverInstances.reportToGraphite)
 
-  return _receivers
+  return receiverInstances
 
-def __graphiteReporter__():
-  for receiver in _receivers:
-    _receivers[receiver]._sendForReporting()
+class Receivers(object):
+  def __init__(self, receivers = {}):
+    self.receivers = receivers
 
+  def addReceiver(self, receiver):
+    """
+    @type receiver: receivers.Receiver
+    """
+    self.receivers[receiver.name] = receiver
 
-def receiver(name):
-  return _receivers[name]
+  def reportToGraphite(self):
+    for receiver in self.receivers.values():
+      receiver._sendForReporting()
+
+  def __getitem__(self, key):
+    return self.receivers[key]

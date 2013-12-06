@@ -25,17 +25,33 @@ def __worker_main__():
 
 def init(config):
   g = GraphiteReporter(config)
-  global _inputs
-  _inputs = {}
   inputs = config.inputs()
+  instantiatedInputs = Inputs()
   for name in inputs:
     my_class = __load_receiver__(inputs[name]['type'], config)
-    _inputs[name] = my_class(name, inputs[name], g)
-    _inputs[name].refresh()
-    schedule.every(10).seconds.do(jobqueue.put, _inputs[name].refresh)
+    instantiatedInputs.addInput(my_class(name, inputs[name], g))
+
+  schedule.every(10).seconds.do(instantiatedInputs.refreshAll)
 
   worker_thread = threading.Thread(target=__worker_main__)
   worker_thread.daemon = True
   worker_thread.start()
 
-  return _inputs
+  return instantiatedInputs
+
+class Inputs(object):
+  def __init__(self):
+    self.inputs = {}
+
+  def addInput(self, input):
+    """
+    @type input: inputs.AnInput
+    """
+    self.inputs[input.name] = input
+    input.refresh()
+
+  def refreshAll(self):
+    [jobqueue.put(input.refresh) for input in self.inputs.values()]
+
+  def __getitem__(self, key):
+    return self.inputs[key]
