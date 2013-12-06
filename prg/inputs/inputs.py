@@ -1,6 +1,5 @@
-import dhtreader, threading, Queue, schedule, logging
-from timeout import timeout, TimeoutError
-from graphitereporter import GraphiteReporter
+import logging
+
 
 class AnInput(object):
   def __init__(self, name, settings, g):
