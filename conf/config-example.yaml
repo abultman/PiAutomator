@@ -7,10 +7,22 @@ graphite:
   enabled: true
 
 receivers:
-  homefan:
+  echosomething:
     type: ToolCommandReceiver
-    command: kaku
-    args: A 1
+    command: echo
+    args: ${name} is now ${state}
+    intools: false
+
+  notification:
+    type: ProwlReceiver
+    api-key: <MY-Awesome-Prowl-api-key>
+    application: homeautomation
+    any-state: true
+
+  homefan:
+    type: KlikAanKlikUitReceiver
+    address: A
+    device: 1
 
 inputs:
   bathroom:
@@ -18,7 +30,7 @@ inputs:
     pin: 4
 
 rules:
-  - when bathroom.humidity is greater than 57 then turn homefan on
-  - when bathroom.humidity is less than 55 then turn homefan off
+  - when bathroom.humidity is greater than 57 then turn homefan on and send notification "Homefan is on" and print echosomething on
+  - when bathroom.humidity is less than 55 then turn homefan off and send notification "Homefan is off" and print echosomething off
   - every day at 22:00 turn homefan on
   - every day at 22:01 turn homefan off
