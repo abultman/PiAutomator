@@ -1,7 +1,4 @@
 import logging
-import Queue
-
-jobqueue = Queue.Queue()
 
 class StateError(Exception):
     pass
