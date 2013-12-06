@@ -1,7 +1,8 @@
 import logging
+import schedule
 from actions import *
 
-_operators = {
+operators = {
   "less than": lambda x,y: int(x) < int(y),
   "greater than": lambda x,y: int(x) > int(y),
   "equal to": lambda x,y: str(x) == str(y)
@@ -64,17 +65,35 @@ class Rule(object):
   def performActions(self):
     [action.perform(self.rule_context, self.rule_state, self.override, self.overrideOff) for action in self.actions]
 
+  def start(self):
+    pass
+
+  def stop(self):
+    pass
+
 class RuleContext(object):
   def __init__(self, inputs, receivers):
     self.inputs = inputs
     self.receivers = receivers
     self.rules = {}
+    self.started = False
 
   def add_rule(self, rule):
     """
     @type rule: rules.Rule
     """
     self.rules[rule.rule_state.rule_id] = rule
+    if self.started:
+      rule.start()
+
+  def start(self):
+    self.started = True
+    [rule.start() for rule in self.rules.values()]
+    self.schedule = schedule.every(5).seconds.do(self.checkrules)
+
+  def stop(self):
+    schedule.cancel_job(self.schedule)
+    [rule.stop() for rule in self.rules.values()]
 
   def checkrules(self):
     self.findMatchingRules(self.inputs).andPerformTheirActions(self.receivers)
@@ -91,7 +110,6 @@ class MatchingRules(object):
     self.matchingRules = matchingRules
     self.receivers = receivers
     self.inputs = inputs
-
 
   def andPerformTheirActions(self, receivers):
     for rule in self.matchingRules:

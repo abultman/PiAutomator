@@ -1,6 +1,6 @@
 import logging
 from pyparsing import *
-from rules import _operators
+from rules import operators
 from conditional import *
 from rules import RuleState
 from schedulerule import *
@@ -27,7 +27,7 @@ class RuleParser(object):
     override = Suppress("override")
     every = Suppress("every")
     at = Suppress("at")
-    word = Word(alphas + nums)
+    word = Word(alphas + nums + "-" + "_")
     ignoredWord = Suppress(word)
     verb = ignoredWord
     number = Word(nums)
@@ -50,7 +50,7 @@ class RuleParser(object):
       metric = word.setResultsName("metric")
       sensormetric = sensor + dot + metric
 
-      operator = oneOf(_operators.keys()).setResultsName("operator")
+      operator = oneOf(operators.keys()).setResultsName("operator")
       value = word_or_sentence.setResultsName("value")
       comparison = operator + value
 
@@ -73,16 +73,22 @@ class RuleParser(object):
                   schedule_rule().setResultsName("schedule-rule")
                 )
 
-    self.rule = rule_type + Optional(identified_by + word).setResultsName("rule-id")
+    self.rule = rule_type + Optional(identified_by + word.setResultsName("rule-id"))
 
   def rawParse(self, toParse):
+    """
+    @rtype: matplotlib.pyparsing.ParseResults
+    """
     self.rules_parsed = self.rules_parsed + 1
     return self.rule.parseString(toParse, parseAll=True)
 
   def parse(self, toParse, context):
+    """
+    @rtype: rules.Rule
+    """
     self.logger.warn(toParse)
     raw_parse = self.rawParse(toParse)
-    rule_id = raw_parse.get('rule-id', ['rule-%d' % self.rules_parsed])[0]
+    rule_id = raw_parse.get('rule-id', 'rule-%d' % self.rules_parsed)
     rule_type = raw_parse.getName()
     my_class = _known_rules[rule_type]
     rule_state = RuleState(rule_id, toParse)

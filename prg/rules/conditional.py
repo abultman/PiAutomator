@@ -1,11 +1,11 @@
-from rules import _operators, Rule
+from rules import operators, Rule
 
 class Condition(object):
   def __init__(self, data):
     self.data = data
     self.sensor = data['sensor']
     self.metric = data['metric']
-    self.operator = _operators[self.data['operator']]
+    self.operator = operators[self.data['operator']]
     self.value = self.data['value']
 
   def matches(self, inputs):
