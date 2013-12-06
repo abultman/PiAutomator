@@ -8,7 +8,12 @@ class GraphiteReporter(object):
     self.config = config
 
   def __getG(self):
-    if not self.g and bool(self.config.getSetting(['graphite', 'enabled'])):
+    def graphite_should_be_enabled():
+      has_graphite = self.g
+      graphite_enabled = self.config.getSetting(['graphite', 'enabled'])
+      return not has_graphite and graphite_enabled
+
+    if graphite_should_be_enabled():
       try: 
         self.g = GraphiteClient(prefix='home', group='%s.'%self.type, graphite_server=self.config.getSetting(['graphite','host']))
       except:
