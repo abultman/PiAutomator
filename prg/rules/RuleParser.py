@@ -76,5 +76,3 @@ class RuleParser(object):
     rule_type = raw_parse.getName()
     my_class = _known_rules[rule_type]
     return my_class(toParse, raw_parse[rule_type], inputs, receivers)
-
-print RuleParser().rawParse("when a.b is less than 412 then shoot messenger 'with gun'").asXML()
