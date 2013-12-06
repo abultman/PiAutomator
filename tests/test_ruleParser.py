@@ -2,6 +2,7 @@ from unittest import TestCase
 from rules import RuleParser, operators
 from rules.conditional import ConditionalRule
 from rules.rules import RuleContext
+from rules.schedulerule import ScheduleRule
 
 
 class TestRuleParser(TestCase):
@@ -42,5 +43,29 @@ class TestRuleParser(TestCase):
     self.assertEqual(len(parse.actions), 2)
     self.assertEqual(parse.actions[0].receiver, 'heat')
     self.assertEqual(parse.actions[0].state, 'up')
+    self.assertEqual(parse.actions[0].verb, 'turn')
     self.assertEqual(parse.actions[1].receiver, 'echo')
     self.assertEqual(parse.actions[1].state, '2')
+
+  def test_scheduled_rule(self):
+    parse = self.parser.parse("every day turn heat up", self.context)
+    self.assertIsInstance(parse, ScheduleRule)
+
+    self.assertEqual(parse.scheduleStr, "schedule.every().day")
+
+  def test_scheduled_rule_with_time(self):
+    parse = self.parser.parse("every day at 10:40 turn heat up", self.context)
+    self.assertIsInstance(parse, ScheduleRule)
+
+    self.assertEqual(parse.scheduleStr, "schedule.every().day.at('10:40')")
+
+  def test_scheduled_rule_with_time_hour(self):
+    parse = self.parser.parse("every hour at 30 turn heat up", self.context)
+    self.assertIsInstance(parse, ScheduleRule)
+    self.assertEqual(parse.scheduleStr, "schedule.every().hour.at('30')")
+
+  def test_scheduled_rule_with_time_hour(self):
+    parse = self.parser.parse("every 5 hours at 30 turn heat up", self.context)
+    self.assertIsInstance(parse, ScheduleRule)
+    self.assertEqual(parse.scheduleStr, "schedule.every(5).hours.at('30')")
+

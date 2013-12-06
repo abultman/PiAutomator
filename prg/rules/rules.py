@@ -64,6 +64,7 @@ class Rule(object):
 
   def performActions(self):
     [action.perform(self.rule_context, self.rule_state, self.override, self.overrideOff) for action in self.actions]
+    self.rule_state.success()
 
   def start(self):
     pass
@@ -102,6 +103,7 @@ class RuleContext(object):
     def rulesMatchingInputs():
       for rule in self.rules.values():
         if rule.matches(): yield rule
+        else: rule.rule_state.failed()
 
     return MatchingRules(rulesMatchingInputs(), self.inputs, self.receivers)
 

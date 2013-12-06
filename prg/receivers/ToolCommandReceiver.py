@@ -21,13 +21,13 @@ class ToolCommandReceiver(Receiver):
     super(ToolCommandReceiver, self).__init__(name, config, settings, g)
     self.intools = not ('intools' in settings and not settings['intools'])
 
-  def _setState(self, state):
+  def _setState(self, verb, state):
     command = None
     if self.intools:
       command = "%s/tools/%s" % (self.config.get_basedir(), self.settings['command'])
     else:
       command = self.settings['command']
-    args = self.settings['args'].replace("${state}", state).replace("${name}", self.name)
+    args = self.settings['args'].replace("${state}", state).replace("${name}", self.name).replace("${verb}", verb)
     toexec = "%s %s" % (command, args)
     jobqueue.put(toexec)
 

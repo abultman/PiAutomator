@@ -13,7 +13,6 @@ _known_rules = {
 
 class RuleParser(object):
 
-
   def __init__(self):
     self.rules_parsed = 0
     self.logger = logging.getLogger("rule-parser")
@@ -29,7 +28,7 @@ class RuleParser(object):
     at = Suppress("at")
     word = Word(alphas + nums + "-" + "_")
     ignoredWord = Suppress(word)
-    verb = ignoredWord
+    verb = word.setResultsName('verb')
     number = Word(nums)
     word_or_sentence = (word | quotedString.setParseAction(removeQuotes))
 
