@@ -16,7 +16,7 @@ class AnInput(object):
         for key in self.value:
           self.g.send('%s.%s' % (self.name, key), self.value[key])
       else:
-        self.g.send('%s' % (self.name), self.value)
+        self.g.send('%s.value' % (self.name), self.value)
 
   def _read(self):
     return None
