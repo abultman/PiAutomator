@@ -30,8 +30,8 @@ General Concepts
 
 Configures a set of rules that
 
-1 Take input from configured  receivers (like the DHT22) =
-2 Take a fixed schedule
+1. Take input from configured  receivers (like the DHT22) =
+2. Take a fixed schedule
 
 and then execute (a series of) actions when input meets criteria.
 
