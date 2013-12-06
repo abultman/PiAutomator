@@ -85,7 +85,6 @@ class RuleParser(object):
     """
     @rtype: rules.Rule
     """
-    self.logger.warn(toParse)
     raw_parse = self.rawParse(toParse)
     rule_id = raw_parse.get('rule-id', 'rule-%d' % self.rules_parsed)
     rule_type = raw_parse.getName()

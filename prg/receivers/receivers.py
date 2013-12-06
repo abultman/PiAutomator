@@ -21,7 +21,7 @@ class Receiver(object):
     if override or not self.overrideMode:
       if self.state != switch or self.state == None:
         self._setState(verb, switch)
-        logging.warn("%s %s %s" % (verb, self.name, switch))
+        logging.info("%s %s %s" % (verb, self.name, switch))
       self.state = switch
     else:
       logging.debug("Receiver %s is in override mode, only rules with override can change it's state now" % self.name)
