@@ -2,9 +2,12 @@ from rules import Rule
 import schedule
 
 class ScheduleRule(Rule):
-  def __init__(self, rulename, data, inputs, receivers):
-
-    super(ScheduleRule, self).__init__(rulename, data, inputs, receivers)
+  def __init__(self, rule_context, rule_state, data):
+    """
+    @type rule_state: RuleState
+    @type data: matplotlib.pyparsing.ParseResults
+    """
+    super(ScheduleRule, self).__init__(rule_context, rule_state, data)
     if "pluralSchedule" in data.keys():
       schedule_data = data['pluralSchedule']
       toeval = "schedule.every(%s).%s" % (schedule_data['count'], schedule_data['unit'])

@@ -2,6 +2,7 @@ import logging
 from pyparsing import *
 from rules import _operators
 from conditional import *
+from rules import RuleState
 from schedulerule import *
 
 _known_rules = {
@@ -14,6 +15,7 @@ class RuleParser(object):
 
 
   def __init__(self):
+    self.rules_parsed = 0
     self.logger = logging.getLogger("rule-parser")
     self.logger.setLevel(logging.INFO)
     dot = Suppress(".")
@@ -29,16 +31,17 @@ class RuleParser(object):
     ignoredWord = Suppress(word)
     verb = ignoredWord
     number = Word(nums)
-
-
     word_or_sentence = (word | quotedString.setParseAction(removeQuotes))
+
+    identified_by = Suppress("identified by")
 
     def __actions():
       state = word_or_sentence.setResultsName("state")
       receiver = word.setResultsName("receiver")
 
       action = Group(verb + receiver + state)
-      return Group(OneOrMore(action + Optional(_and))).setResultsName("actions")
+      actions = ZeroOrMore(action + _and) + action
+      return Group(actions).setResultsName("actions")
     actions = __actions()
 
 
@@ -52,7 +55,8 @@ class RuleParser(object):
       comparison = operator + value
 
       condition = Group(sensormetric + _is + comparison)
-      conditions = Group(OneOrMore(condition + Optional(_and))).setResultsName("conditions")
+      res = ZeroOrMore(condition + _and) + condition
+      conditions = Group(res).setResultsName("conditions")
 
       return when + conditions + then + actions
 
@@ -64,15 +68,22 @@ class RuleParser(object):
 
       return (recurring1 | recurring2) + actions + Optional(override + Optional("off")).setResultsName("override")
 
-    self.rule = (receiver_input_rule().setResultsName("input-rule") | schedule_rule().setResultsName("schedule-rule")) + stringEnd
+    rule_type = (
+                  receiver_input_rule().setResultsName("input-rule") |
+                  schedule_rule().setResultsName("schedule-rule")
+                )
 
+    self.rule = rule_type + Optional(identified_by + word).setResultsName("rule-id")
 
   def rawParse(self, toParse):
-    return self.rule.parseString(toParse)
+    self.rules_parsed = self.rules_parsed + 1
+    return self.rule.parseString(toParse, parseAll=True)
 
-  def parse(self, toParse, inputs, receivers):
+  def parse(self, toParse, context):
     self.logger.warn(toParse)
     raw_parse = self.rawParse(toParse)
+    rule_id = raw_parse.get('rule-id', ['rule-%d' % self.rules_parsed])[0]
     rule_type = raw_parse.getName()
     my_class = _known_rules[rule_type]
-    return my_class(toParse, raw_parse[rule_type], inputs, receivers)
+    rule_state = RuleState(rule_id, toParse)
+    return my_class(context, rule_state, raw_parse[rule_type])

@@ -4,8 +4,11 @@ class Action(object):
     self.state = data['state']
     self.data = data
 
-  def perform(self, receivers, override = False, overrideOff = False):
-    receiver = receivers[self.receiver]
+  def perform(self, rule_context, rule_state, override = False, overrideOff = False):
+    """
+    @type rule_context: rules.RuleContext
+    """
+    receiver = rule_context.receivers[self.receiver]
     if overrideOff:
       receiver.setOverrideMode(False)
     elif override:

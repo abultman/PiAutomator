@@ -20,12 +20,16 @@ class Condition(object):
     return "%s" % self.data
 
 class ConditionalRule(Rule):
-  def __init__(self, rulename, data, inputs, receivers):
-    super(ConditionalRule, self).__init__(rulename, data, inputs, receivers)
+  def __init__(self, rule_context, rule_state, data):
+    """
+    @type rule_state: RuleState
+    @type data: matplotlib.pyparsing.ParseResults
+    """
+    super(ConditionalRule, self).__init__(rule_context, rule_state, data)
     self.conditions = [Condition(condition) for condition in data['conditions']]
 
   def matches(self):
-    return all(condition.matches(self.inputs) for condition in self.conditions)
+    return all(condition.matches(self.rule_context.inputs) for condition in self.conditions)
 
   def __str__(self):
-    return "actions %s\nconditions %s" % (self.actions, self.conditions)
+    return "%s %s actions %s\nconditions %s" % (self.rule_state.rule_id, self.rule_state.rule_name, self.actions, self.conditions)
