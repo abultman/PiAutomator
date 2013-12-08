@@ -72,7 +72,7 @@ class PiLightDaemon(object):
         self.current_buffer = new_buffer
 
     def process_message(self, messagestr):
-        __logger__.debug(messagestr)
+        __logger__.info(messagestr)
         message = json.loads(messagestr)
         if 'devices' in message:
             devices = message['devices']
