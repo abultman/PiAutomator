@@ -9,8 +9,6 @@ import receivers
 import inputs
 import rules
 from config import AutomationConfig
-from web import automatetheweb
-import web
 
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
