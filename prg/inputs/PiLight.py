@@ -24,7 +24,7 @@ def init(config):
 
 class PiLight(AnInput):
     def __init__(self, name, settings, g):
-        super(DHT22, self).__init__(name, settings, g)
+        super(PiLight, self).__init__(name, settings, g)
         self.room = settings['room']
         self.input = settings['input']
         self.scale = settings['scale']
@@ -54,7 +54,6 @@ class PiLightDaemon(object):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
         self.socket.send(json.dumps({'message': 'client gui'}))
-        print "inited"
         __logger__.info("connected to pilight as a receiver")
 
     def receive(self):
@@ -74,7 +73,7 @@ class PiLightDaemon(object):
 
     def process_message(self, messagestr):
         __logger__.debug(messagestr)
-        message = json.loads(messagestr)
+        message = json.loads(messagestr, encoding = 'latin-1')
         if 'devices' in message:
             devices = message['devices']
             for device in devices:
