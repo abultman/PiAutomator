@@ -24,13 +24,12 @@ Graphite
 Automatically sends collected sensor data to Graphite so you can keep an eye on your data.
 I used https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphite.sh to quickly get graphite on the pi.
 
-
 General Concepts
 ----------------
 
 Configures a set of rules that
 
-1. Take input from configured  receivers (like the DHT22) =
+1. Take input from configured  receivers (like the DHT22)
 2. Take a fixed schedule
 
 and then execute (a series of) actions when input meets criteria.
