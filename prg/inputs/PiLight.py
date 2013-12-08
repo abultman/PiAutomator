@@ -24,6 +24,7 @@ def init(config):
 
 class PiLight(AnInput):
     def __init__(self, name, settings, g):
+        super(DHT22, self).__init__(name, settings, g)
         self.room = settings['room']
         self.input = settings['input']
         self.scale = settings['scale']
