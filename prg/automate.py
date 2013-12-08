@@ -21,7 +21,7 @@ config = AutomationConfig(basedir)
 receivers = receivers.init(config)
 inputs = inputs.init(config)
 allrules = rules.init(config, inputs, receivers)
-theweb = web.init(config, allrules)
+# theweb = web.init(config, allrules)
 
 # Setup the handler that will terminate our event loops.
 global running
