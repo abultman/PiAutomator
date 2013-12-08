@@ -1,6 +1,5 @@
 import Queue
 import threading
-import logging
 
 import schedule
 

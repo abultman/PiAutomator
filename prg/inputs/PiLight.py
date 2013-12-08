@@ -5,7 +5,7 @@ import socket
 import json
 import logging
 import threading
-from inputs.inputs import AnInput
+from inputs import AnInput
 
 pilight_sensors = {}
 __logger__ = logging.getLogger('pilight-receiver')
