@@ -14,8 +14,9 @@ class PiLight(Receiver):
 
     def _setState(self, verb, s):
         state = s
-        if state == 'on': state = 'up'
-        elif state == 'off': state = 'down'
+        if self.settings['translate-up-down']:
+          if state == 'on': state = 'up'
+          elif state == 'off': state = 'down'
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.host, self.port))
         s.send(json.dumps({'message': 'client controller'}))
