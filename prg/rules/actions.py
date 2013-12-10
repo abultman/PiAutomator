@@ -11,14 +11,14 @@ class Action(object):
         """
         @type rule_context: rules.RuleContext
         """
-        if self.receiver in rule_context.receivers:
+        try:
             receiver = rule_context.receivers[self.receiver]
             if overrideOff:
                 receiver.setOverrideMode(False)
             elif override:
                 receiver.setOverrideMode(True)
             receiver.do(self.verb, self.state, override)
-        else:
+        except:
             logging.warning("Receiver with name '%s' is unknown, skipping this action" % self.receiver)
 
     def __str__(self):
