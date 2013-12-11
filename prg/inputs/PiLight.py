@@ -33,15 +33,15 @@ class PiLight(AnInput):
         self.values = None
         pilight_sensors["%s.%s" %(self.room, self.input)] = self
 
-    def update(self, data, key = None):
+    def update(self, data, publish_key = None):
         origvalues = data['values']
         values = {}
         for key in origvalues:
             if origvalues[key] in ['on', 'up']:values[key+'_int'] = 1
             elif origvalues[key] in ['off', 'down']:values[key+'_int'] = 0
             values[key] = origvalues[key]
-        if key:
-            self.publish(values, 'pilight.%s' % (key))
+        if publish_key:
+            self.publish(values, 'pilight.%s' % (publish_key))
         elif self.scale:
             result = {}
             for key in values:
