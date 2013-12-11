@@ -1,4 +1,5 @@
 import schedule
+from config import LocalSettings
 
 from graphitereporter import *
 
@@ -26,7 +27,7 @@ def init(context):
     receivers = context.config.receivers()
     for name in receivers:
         my_class = __load_receiver__(receivers[name]['type'], context.config)
-        receiverInstances.addReceiver(my_class(name, context, receivers[name]))
+        receiverInstances.addReceiver(my_class(name, context, LocalSettings(receivers[name])))
 
     # schedule.every(10).seconds.do(receiverInstances.reportToGraphite)
 

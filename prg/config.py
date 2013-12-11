@@ -29,3 +29,14 @@ class AutomationConfig(object):
     def get_basedir(self):
         return self.basedir
 
+class LocalSettings(object):
+    def __init__(self, data):
+        self.data = data
+
+    def __getitem__(self, key):
+        self.__getsetting(key)
+
+    def getsetting(self, key, default = None):
+        if key in self.data:
+            return self.data[key]
+        return default

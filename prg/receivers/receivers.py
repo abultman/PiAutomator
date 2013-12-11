@@ -14,8 +14,8 @@ class Receiver(object):
         self.name = name
         self.state = None
         self.overrideMode = False
-        self.any_state = "any-state" in settings and settings["any-state"]
-        self.maintain_state = not "maintain-state" in settings or settings["maintain-state"]
+        self.any_state = settings.getsetting("any-state", False)
+        self.maintain_state = settings.getsetting("maintain-state", True)
         self.context = context
 
     def do(self, verb, switch, override=False):
