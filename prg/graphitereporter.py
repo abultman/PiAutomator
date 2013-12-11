@@ -5,7 +5,7 @@ from graphitesend import GraphiteClient
 
 
 class GraphiteReporter(object):
-    def __init__(self, config, type='measurements'):
+    def __init__(self, config, type='piautomator'):
         self.g = None
         self.type = type
         self.config = config

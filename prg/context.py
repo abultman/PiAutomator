@@ -2,6 +2,8 @@ from Queue import Queue
 import logging
 import threading
 import time
+import schedule
+from graphitereporter import GraphiteReporter
 
 __logger__ = logging.getLogger("automation-context")
 __logger__.setLevel(logging.INFO)
@@ -9,10 +11,22 @@ __logger__.setLevel(logging.INFO)
 __lock__ = threading.Lock()
 
 class AutomationContext(object):
+    def __start_local_threads(self):
+        thread = threading.Thread(target=self.__publish_values__)
+        thread.daemon = True
+        thread.start()
+        thread = threading.Thread(target=self.__rule_eval__)
+        thread.daemon = True
+        thread.start()
+        thread = threading.Thread(target=self.__perform_actions__)
+        thread.daemon = True
+        thread.start()
+
     def __init__(self, config):
         """
         @type config: config.AutomationConfig
         """
+        self.job_queue = Queue()
         self.receivers = {}
         self.values = {}
         self.prefixes = {
@@ -22,16 +36,30 @@ class AutomationContext(object):
             'receiver': 'receiver.'
         }
         self.changed = False
-        self.publish_queue = Queue()
-        thread = threading.Thread(target=self.__publish_values__)
-        thread.daemon = True
-        thread.start()
-        thread = threading.Thread(target=self.__rule_eval__)
-        thread.daemon = True
-        thread.start()
         self.config = config
         self.receivers = None
         self.rule_context = None
+        self.publish_queue = Queue()
+        self.__start_local_threads()
+        self.reporter = GraphiteReporter(config)
+
+    def __export_data__(self):
+        self.__export_data_path__("automation_context", self.values)
+
+    def __export_data_path__(self, path, values):
+        def is_number(s):
+            try:
+                float(s)
+                return True
+            except ValueError:
+                return False
+
+        if isinstance(values, dict):
+            for key in values:
+                self.__export_data_path__(path + "." + key, values[key])
+        elif is_number(values):
+            print "reporting %s: %s" % (path, values)
+            self.reporter.send(path, values)
 
     def __publish_values__(self):
         __logger__.info("Starting central value publish thread")
@@ -60,6 +88,15 @@ class AutomationContext(object):
                 __logger__.info("done firing rules")
             else:
                 time.sleep(0)
+
+    def __perform_actions__(self):
+        while True:
+            job = self.job_queue.get()
+            job()
+            self.job_queue.task_done()
+
+    def async_perform(self, fun):
+        self.job_queue.put(fun)
 
     def publishValues(self, path, values):
         self.publish_queue.put([path, values])
@@ -107,6 +144,7 @@ class AutomationContext(object):
             return None
 
     def start(self):
+        self.schedule = schedule.every(10).seconds.do(self.__export_data__)
         self.rule_context.start()
 
     def stop(self):

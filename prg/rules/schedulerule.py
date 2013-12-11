@@ -25,6 +25,9 @@ class ScheduleRule(Rule):
     def start(self):
         self.schedule = eval(self.scheduleStr).do(self.performActions)
 
+    def __perform_my_actions(self):
+        self.rule_context.automation_context.async_perform(self.performActions)
+
     def stop(self):
         schedule.cancel_job(self.schedule)
 
