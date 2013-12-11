@@ -32,15 +32,15 @@ class TestAutomationContext(TestCase):
         self.assertEqual(self.context.getValue("receiver.test.my.value"), 123123)
 
     def test_publishing_values_changes_state(self):
-        self.assertFalse(self.context.changed)
+        self.assertFalse(self.context.trigger)
         self.context.publishReceiverValues("test.my", {'value':123123})
         self.context.publish_queue.join()
-        self.assertTrue(self.context.changed)
+        self.assertTrue(self.context.trigger)
 
     def test_publishing_same_values_changes_no_state(self):
         self.context.publishReceiverValues("test.my", {'value':123123})
         self.context.publish_queue.join()
-        self.context.changed = False
+        self.context.trigger = False
         self.context.publishReceiverValues("test.my", {'value':123123})
         self.context.publish_queue.join()
-        self.assertFalse(self.context.changed)
+        self.assertFalse(self.context.trigger)

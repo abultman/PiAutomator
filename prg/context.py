@@ -35,13 +35,13 @@ class AutomationContext(object):
             'rule':'rule.',
             'receiver': 'receiver.'
         }
-        self.changed = False
+        self.trigger = Queue()
         self.config = config
         self.receivers = None
         self.rule_context = None
         self.publish_queue = Queue()
-        self.__start_local_threads()
         self.reporter = GraphiteReporter(config)
+        self.__start_local_threads()
 
     def __export_data__(self):
         self.__export_data_path__("automation_context", self.values)
@@ -76,19 +76,18 @@ class AutomationContext(object):
                 if not key in state or not state[key] == values[key]:
                     state[key] = values[key]
                     __logger__.debug("setting %s %s to %s", path, key, state[key])
-                    if changed:
-                        self.changed = True
+                    if changed and self.trigger.qsize() == 0:
+                        self.trigger.put(True)
             self.publish_queue.task_done()
 
     def __rule_eval__(self):
         while True:
-            if self.changed and self.rule_context:
-                self.changed = False
-                __logger__.debug("State changed, firing rules")
-                self.rule_context.checkrules()
-                __logger__.debug("done firing rules")
-            else:
-                time.sleep(0.001)
+            self.trigger.get()
+            __logger__.debug("State changed, firing rules")
+            if self.rule_context: self.rule_context.checkrules()
+            else: print 'nope'
+            self.trigger.task_done()
+            __logger__.debug("done firing rules")
 
     def __perform_actions__(self):
         while True:
@@ -145,7 +144,7 @@ class AutomationContext(object):
             return None
 
     def __force_run__(self):
-        self.changed = True
+        self.trigger.put(True)
 
     def start(self):
         self.schedule = schedule.every(10).seconds.do(self.__export_data__)
