@@ -34,9 +34,10 @@ class LocalSettings(object):
         self.data = data
 
     def __getitem__(self, key):
-        self.getsetting(key)
+        return self.getsetting(key)
 
     def getsetting(self, key, default = None):
         if key in self.data:
             return self.data[key]
-        return default
+        else:
+            return default
