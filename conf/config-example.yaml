@@ -1,40 +1,78 @@
 ---
+# Current Version of the config
 version: 1.0
 
+# Configure graphite if you have it. if not, set enabled to false
 graphite:
   host: 127.0.0.1
   port: 2003
   enabled: true
 
+# piligth section. Required if you add pilight inputs or receivers
 pilight:
   host: 127.0.0.1
   port: 5000
 
+
 receivers:
+
+  # Simple example of a ToolCommandReceiver that calls echo
   echosomething:
     type: ToolCommandReceiver
     command: echo
     args: ${name} is now ${state}
     intools: false
 
+  # Send a notification to PROWL, you can send yourself a notification when something important happens
   notification:
     type: ProwlReceiver
     api-key: <MY-Awesome-Prowl-api-key>
     application: homeautomation
     any-state: true
 
+  # Direct KlikAanKlikUit receiver (old protocol), native python implementation.
   homefan:
     type: KlikAanKlikUitReceiver
     address: A
     device: 1
 
+  # Same receiver, but then using a PiLight config.
+  # translate-up-down is usefull for old kaku protocols that
+  # pilight treats as up/down state wheras it treats new protocols as on/off
+  homefan:
+    translate-up-down: true
+    type: PiLight
+    location: home
+    device: homefan
+
 inputs:
+
+  # Direct DHT22 input
   bathroom:
     type: DHT22
     pin: 4
 
+  # DHT22 input through PiLight
+  # In this case you can add a scale to lower it from 171 to 17.1 degrees etc. You don't have to
+  bathroom:
+     type: PiLight
+     location: bathroom
+     device: h_t_sensor
+     scale: 0.1
+
+   #Special pilight input. If you define this one, it will be the default for all pilight events if there is
+   #no specific one for the given location and device.
+   #Values are made available for rules under pilight.<location>.<device>.<metric>
+   # for instance pilight.livingroom.christmastree.state
+   # or pilight.bathrool.h_t_sensor.humidity etc
+   all-pilight:
+     type: PiLight
+     location: all
+     device: all
+
 rules:
   - when bathroom.humidity is greater than 57 then turn homefan on and send notification "Homefan is on" and print echosomething on
   - when bathroom.humidity is less than 55 then turn homefan off and send notification "Homefan is off" and print echosomething off
+  - when pilight.frontgarden.lightsensor.level less than 44 then turn outsidelights on
   - every day at 22:00 turn homefan on
   - every day at 22:01 turn homefan off

@@ -39,12 +39,16 @@ An example of a rule could be:
 - when kitchen.temperature is greater than 25 then turn airconditioning on
 - every day at 20:00 turn outsidelights on
 
+PiLight
+-------
+PiAutomator supports adding PiLight as both inputs and receivers. PiLight can read the DHT22 all by itself, should you not want to, you can config it directly.
 
-DHT22
------
+
+DHT22 - Direct
+--------------
 install bcm2835 library: http://www.airspayce.com/mikem/bcm2835/
 
-To read the DHT22 sensor, this wonderfull piece of software was used:
+To read the DHT22 sensor directly, this wonderfull piece of software was used:
 
 https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/tree/master/Adafruit_DHT_Driver_Python
 
