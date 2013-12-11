@@ -33,10 +33,11 @@ class PiLight(AnInput):
         self.values = None
         pilight_sensors["%s.%s" %(self.room, self.input)] = self
 
-    def update(self, data):
-        if self.name == 'all-pilight':
-            __logger__.info('publishing')
-            self.publish(data['values'], 'pilight.%s.%s' % (data['location'], data['device']))
+    def update(self, data, key = None):
+        if key:
+            __logger__.info('publishing ')
+    # {"origin":"config","type":5,"devices":{"livingroom":[ "christmastree" ]},"values":{"state":"up"}}
+            self.publish(data['values'], 'pilight.%s' % (key))
         elif self.scale:
             values = data['values']
             result = {}
@@ -87,11 +88,8 @@ class PiLightDaemon(object):
                     pilight_sensors[key].update(message)
                 elif 'all.all' in pilight_sensors:
                     __logger__.info('sending to all-pilight')
-                    pilight_sensors['all.all'].update(message)
-                else:
-                    __logger__.info('oops?')
-                    __logger__.info(pilight_sensors)
-      
+                    pilight_sensors['all.all'].update(message, key)
+
 
     def process_config_message(self, message):
         config = message['config']
