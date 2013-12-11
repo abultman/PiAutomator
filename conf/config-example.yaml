@@ -36,7 +36,7 @@ receivers:
     address: A
     device: 1
 
-  # Same receiver, but then using a PiLight config.
+  # Same receiver, but then using a pilight config.
   # translate-up-down is usefull for old kaku protocols that
   # pilight treats as up/down state wheras it treats new protocols as on/off
   homefan:
@@ -52,7 +52,7 @@ inputs:
     type: DHT22
     pin: 4
 
-  # DHT22 input through PiLight
+  # DHT22 input through pilight
   # In this case you can add a scale to lower it from 171 to 17.1 degrees etc. You don't have to
   bathroom:
      type: PiLight

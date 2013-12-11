@@ -1,5 +1,5 @@
 """
-This input module supports getting data from PiLight (http://http://www.pilight.org/) and triggering rules accordingly
+This input module supports getting data from pilight (http://http://www.pilight.org/) and triggering rules accordingly
 """
 import socket
 import json
@@ -94,7 +94,7 @@ class PiLightDaemon(object):
 
     def process_config_message(self, message):
         config = message['config']
-        __logger__.info("Configuration of PiLight\n%s", config)
+        __logger__.info("Configuration of pilight\n%s", config)
 
 
     def process_message(self, messagestr):

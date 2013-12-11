@@ -39,9 +39,11 @@ An example of a rule could be:
 - when kitchen.temperature is greater than 25 then turn airconditioning on
 - every day at 20:00 turn outsidelights on
 
-PiLight
+pilight
 -------
-PiAutomator supports adding PiLight as both inputs and receivers. PiLight can read the DHT22 all by itself, should you not want to, you can config it directly.
+PiAutomator supports adding pilight as both inputs and receivers. pilight can read the DHT22 all by itself, should you not want to, you can config it directly.
+
+http://www.pilight.org/
 
 
 DHT22 - Direct
