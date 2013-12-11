@@ -34,18 +34,18 @@ class PiLight(AnInput):
         pilight_sensors["%s.%s" %(self.room, self.input)] = self
 
     def update(self, data, key = None):
+        values = data['values']
+        for key in values:
+            if values[key] in ['on', 'up']:values[key+'_int'] = 1
+            elif values[key] in ['off', 'down']:values[key+'_int'] = 0
         if key:
-            __logger__.info('publishing ')
-    # {"origin":"config","type":5,"devices":{"livingroom":[ "christmastree" ]},"values":{"state":"up"}}
-            self.publish(data['values'], 'pilight.%s' % (key))
+            self.publish(values, 'pilight.%s' % (key))
         elif self.scale:
-            values = data['values']
             result = {}
             for key in values:
                 result[key] = float(values[key]) * self.scale
             self.publish(result)
         else:
-            values = data['values']
             self.publish(values)
 
 class PiLightDaemon(object):
@@ -97,7 +97,7 @@ class PiLightDaemon(object):
 
 
     def process_message(self, messagestr):
-        __logger__.info(messagestr)
+        __logger__.debug(messagestr)
         message = json.loads(messagestr)
         if 'devices' in message:
             self.process_device_message(message)
