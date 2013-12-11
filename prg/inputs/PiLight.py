@@ -40,7 +40,7 @@ class PiLight(AnInput):
             values = data['values']
             result = {}
             for key in values:
-                result[key] = float(self.values[key]) * self.scale
+                result[key] = float(values[key]) * self.scale
             self.publish(result)
 
 class PiLightDaemon(object):
