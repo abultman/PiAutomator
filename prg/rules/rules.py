@@ -82,6 +82,9 @@ class Rule(object):
 
 class RuleContext(object):
     def __init__(self, automation_context):
+        """
+        @type automation_context: context.AutomationContext
+        """
         self.rules = {}
         self.started = False
         self.automation_context = automation_context
@@ -104,6 +107,8 @@ class RuleContext(object):
 
     def checkrules(self):
         self.findMatchingRules().andPerformTheirActions()
+        for rule in self.rules:
+            self.automation_context.publishRuleValues(rule, self.rules[rule].rule_state.data)
 
     def findMatchingRules(self):
         def rulesMatchingInputs():
