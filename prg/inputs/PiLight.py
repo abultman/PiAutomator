@@ -25,8 +25,8 @@ def init(config):
     worker_thread.start()
 
 class PiLight(AnInput):
-    def __init__(self, name, settings, g):
-        super(PiLight, self).__init__(name, settings, g)
+    def __init__(self,  name, context, settings):
+        super(PiLight, self).__init__(name, context, settings)
         self.room = settings['location']
         self.input = settings['device']
         self.scale = settings['scale']
