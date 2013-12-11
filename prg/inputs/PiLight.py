@@ -89,7 +89,6 @@ class PiLightDaemon(object):
                 if key in pilight_sensors:
                     pilight_sensors[key].update(message)
                 elif 'all.all' in pilight_sensors:
-                    __logger__.info('sending to all-pilight')
                     pilight_sensors['all.all'].update(message, key)
 
 
