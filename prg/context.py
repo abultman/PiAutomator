@@ -84,9 +84,9 @@ class AutomationContext(object):
         while True:
             if self.changed and self.rule_context:
                 self.changed = False
-                __logger__.info("State changed, firing rules")
+                __logger__.debug("State changed, firing rules")
                 self.rule_context.checkrules()
-                __logger__.info("done firing rules")
+                __logger__.debug("done firing rules")
             else:
                 time.sleep(0.001)
 
