@@ -17,7 +17,9 @@ def init(config):
 
     @type config: config.AutomationConfig
     """
-    receiver = PiLightDaemon(config.getSetting(['pilight', 'host']), config.getSetting(['pilight', 'port']))
+    receiver = PiLightDaemon(
+        config.getSetting(['pilight', 'host'], '127.0.0.1'),
+        config.getSetting(['pilight', 'port'], 5000))
     worker_thread = threading.Thread(target=receiver.receive)
     worker_thread.daemon = True
     worker_thread.start()
@@ -32,16 +34,7 @@ class PiLight(AnInput):
         pilight_sensors["%s.%s" %(self.room, self.input)] = self
 
     def update(self, data):
-        self.values = data['values']
-
-    def _read(self):
-        if self.values:
-            result = {}
-            for key in self.values:
-                result[key] = float(self.values[key]) * self.scale
-            return result
-        else:
-            return None
+        self.publish(data['values'])
 
 class PiLightDaemon(object):
     def __init__(self, host, port):
@@ -72,6 +65,7 @@ class PiLightDaemon(object):
         self.current_buffer = new_buffer
 
     def process_message(self, messagestr):
+        __logger__.debug(messagestr)
         message = json.loads(messagestr)
         if 'devices' in message:
             devices = message['devices']

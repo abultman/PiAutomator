@@ -32,14 +32,14 @@ def __worker_main__():
         jobqueue.get()()
 
 
-def init(config):
-    g = GraphiteReporter(config)
-    inputs = config.inputs()
+def init(automation_context):
+    inputs = automation_context.config.inputs()
     instantiatedInputs = Inputs()
     for name in inputs:
-        my_class = __load_receiver__(inputs[name]['type'], config)
-        instantiatedInputs.addInput(my_class(name, inputs[name], g))
+        my_class = __load_receiver__(inputs[name]['type'], automation_context.config)
+        instantiatedInputs.addInput(my_class(name, automation_context, inputs[name]))
 
+    instantiatedInputs.refreshAll()
     schedule.every(10).seconds.do(instantiatedInputs.refreshAll)
 
     worker_thread = threading.Thread(target=__worker_main__)
@@ -50,6 +50,9 @@ def init(config):
 
 
 class Inputs(object):
+    """
+    Simple parent wrapper for all Inputs that are defined
+    """
     def __init__(self):
         self.inputs = {}
 
@@ -58,10 +61,12 @@ class Inputs(object):
         @type input: inputs.AnInput
         """
         self.inputs[input.name] = input
-        input.refresh()
 
     def refreshAll(self):
-        [jobqueue.put(input.refresh) for input in self.inputs.values()]
+        """
+        Any input that has a refresh method (for instance subclasses of PollingInput, get refreshed at this point
+        """
+        [jobqueue.put(input.refresh) for input in self.inputs.values() if hasattr(input, 'refresh')]
 
     def __getitem__(self, key):
         return self.inputs[key]

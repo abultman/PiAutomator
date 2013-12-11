@@ -70,6 +70,9 @@ class Rule(object):
         [action.perform(self.rule_context, self.rule_state, self.override, self.overrideOff) for action in self.actions]
         self.rule_state.success()
 
+    def publish(self):
+        pass
+
     def start(self):
         pass
 
@@ -78,11 +81,10 @@ class Rule(object):
 
 
 class RuleContext(object):
-    def __init__(self, inputs, receivers):
-        self.inputs = inputs
-        self.receivers = receivers
+    def __init__(self, automation_context):
         self.rules = {}
         self.started = False
+        self.automation_context = automation_context
 
     def add_rule(self, rule):
         """
@@ -95,16 +97,15 @@ class RuleContext(object):
     def start(self):
         self.started = True
         [rule.start() for rule in self.rules.values()]
-        self.schedule = schedule.every(5).seconds.do(self.checkrules)
+        # self.schedule = schedule.every(5).seconds.do(self.checkrules)
 
     def stop(self):
-        schedule.cancel_job(self.schedule)
         [rule.stop() for rule in self.rules.values()]
 
     def checkrules(self):
-        self.findMatchingRules(self.inputs).andPerformTheirActions(self.receivers)
+        self.findMatchingRules().andPerformTheirActions()
 
-    def findMatchingRules(self, inputs):
+    def findMatchingRules(self):
         def rulesMatchingInputs():
             for rule in self.rules.values():
                 if rule.matches():
@@ -112,16 +113,14 @@ class RuleContext(object):
                 else:
                     rule.rule_state.failed()
 
-        return MatchingRules(rulesMatchingInputs(), self.inputs, self.receivers)
+        return MatchingRules(rulesMatchingInputs())
 
 
 class MatchingRules(object):
-    def __init__(self, matchingRules, inputs, receivers):
+    def __init__(self, matchingRules):
         self.matchingRules = matchingRules
-        self.receivers = receivers
-        self.inputs = inputs
 
-    def andPerformTheirActions(self, receivers):
+    def andPerformTheirActions(self):
         for rule in self.matchingRules:
             rule.performActions()
 

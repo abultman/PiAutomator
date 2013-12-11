@@ -12,7 +12,7 @@ class Action(object):
         @type rule_context: rules.RuleContext
         """
         try:
-            receiver = rule_context.receivers[self.receiver]
+            receiver = rule_context.automation_context.receivers[self.receiver]
             if overrideOff:
                 receiver.setOverrideMode(False)
             elif override:

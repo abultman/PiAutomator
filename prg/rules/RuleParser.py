@@ -44,15 +44,13 @@ class RuleParser(object):
 
 
         def receiver_input_rule():
-            sensor = word.setResultsName("sensor")
-            metric = word.setResultsName("metric")
-            sensormetric = sensor + dot + metric
+            input = Combine(ZeroOrMore(word + ".") + word).setResultsName("input")
 
             operator = oneOf(operators.keys()).setResultsName("operator")
             value = word_or_sentence.setResultsName("value")
             comparison = operator + value
 
-            condition = Group(sensormetric + _is + comparison)
+            condition = Group(input + _is + comparison)
             res = ZeroOrMore(condition + _and) + condition
             conditions = Group(res).setResultsName("conditions")
 
@@ -84,7 +82,7 @@ class RuleParser(object):
         self.rules_parsed = self.rules_parsed + 1
         return self.rule.parseString(toParse, parseAll=True)
 
-    def parse(self, toParse, context):
+    def parse(self, toParse, rule_context):
         """
         @rtype: rules.Rule
         """
@@ -93,4 +91,4 @@ class RuleParser(object):
         rule_type = raw_parse.getName()
         my_class = _known_rules[rule_type]
         rule_state = RuleState(rule_id, toParse)
-        return my_class(context, rule_state, raw_parse[rule_type])
+        return my_class(rule_context, rule_state, raw_parse[rule_type])

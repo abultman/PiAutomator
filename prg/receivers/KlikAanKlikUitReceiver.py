@@ -20,8 +20,8 @@ def init(config):
 
 
 class KlikAanKlikUitReceiver(receivers.Receiver):
-    def __init__(self, name, config, settings, g):
-        super(KlikAanKlikUitReceiver, self).__init__(name, config, settings, g)
+    def __init__(self, name, context, settings):
+        super(KlikAanKlikUitReceiver, self).__init__(name, context, settings)
         self.pin = __pin__
         self.repeats = __repeats__
 

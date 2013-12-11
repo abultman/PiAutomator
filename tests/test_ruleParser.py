@@ -9,7 +9,7 @@ class TestRuleParser(TestCase):
 
   def setUp(self):
     self.parser = RuleParser()
-    self.context = RuleContext({}, {})
+    self.context = RuleContext({})
 
   def test_parse_simple_conditional(self):
     parse = self.parser.parse("when input.metric is less than 10 then turn heat up", self.context)
@@ -20,15 +20,13 @@ class TestRuleParser(TestCase):
     self.assertEqual(parse.rule_state.rule_id, "my_name1-awesome")
 
   def test_parse_mulitple_conditional_identified_by(self):
-    parse = self.parser.parse("when input.metric is less than 10 and input3.othermetric is equal to 43 then turn heat up", self.context)
+    parse = self.parser.parse("when input.metric is less than 10 and input3.othermetric.that.is.super.nested is equal to 43 then turn heat up", self.context)
     self.assertIsInstance(parse, ConditionalRule)
     self.assertEqual(len(parse.conditions), 2)
-    self.assertEqual(parse.conditions[0].metric, 'metric')
-    self.assertEqual(parse.conditions[0].sensor, 'input')
+    self.assertEqual(parse.conditions[0].input, 'input.metric')
     self.assertEqual(parse.conditions[0].operator, operators['less than'])
 
-    self.assertEqual(parse.conditions[1].metric, 'othermetric')
-    self.assertEqual(parse.conditions[1].sensor, 'input3')
+    self.assertEqual(parse.conditions[1].input, 'input3.othermetric.that.is.super.nested')
     self.assertEqual(parse.conditions[1].operator, operators['equal to'])
 
     self.assertEqual(len(parse.actions), 1)

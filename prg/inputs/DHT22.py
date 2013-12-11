@@ -1,5 +1,5 @@
 import dhtreader
-from inputs import AnInput
+from inputs import PollingInput
 from timeout import TimeoutError
 
 
@@ -7,11 +7,9 @@ def init(config):
     dhtreader.init()
 
 
-class DHT22(AnInput):
-    def __init__(self, name, settings, g):
-        super(DHT22, self).__init__(name, settings, g)
-        self.settings = settings
-        self.g = g
+class DHT22(PollingInput):
+    def __init__(self, name, context, settings):
+        super(DHT22, self).__init__(name, context, settings)
 
     def _read(self):
         try:

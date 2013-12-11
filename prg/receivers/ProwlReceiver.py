@@ -10,11 +10,11 @@ class ProwlInitializtionError(Exception):
 
 
 class ProwlReceiver(Receiver):
-    def __init__(self, name, config, settings, g):
-        super(ProwlReceiver, self).__init__(name, config, settings, g)
+    def __init__(self, name, context, settings):
+        super(ProwlReceiver, self).__init__(name, context, settings)
         self.api_key = settings['api-key']
         self.application = settings['application']
-        # self.verify()
+        self.verify()
 
     def _setState(self, verb, state):
         values = {
@@ -37,8 +37,3 @@ class ProwlReceiver(Receiver):
             urllib2.urlopen("https://api.prowlapp.com/publicapi/verify?apikey=%s" % self.api_key)
         except:
             raise ProwlInitializtionError("Passed api key is not valid")
-
-
-
-
-            # ProwlReceiver("me", {}, {"api-key":"1247cee2d6796e96e893a24d7967395b5f5a7286", "application": "homeautomation"}, {})._setState("Works!")

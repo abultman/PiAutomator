@@ -20,15 +20,15 @@ def __load_receiver__(elem, config):
     return __myclasses__[elem]
 
 
-def init(config):
-    g = GraphiteReporter(config, "receivers")
+def init(context):
+    # g = GraphiteReporter(config, "receivers")
     receiverInstances = Receivers()
-    receivers = config.receivers()
+    receivers = context.config.receivers()
     for name in receivers:
-        my_class = __load_receiver__(receivers[name]['type'], config)
-        receiverInstances.addReceiver(my_class(name, config, receivers[name], g))
+        my_class = __load_receiver__(receivers[name]['type'], context.config)
+        receiverInstances.addReceiver(my_class(name, context, receivers[name]))
 
-    schedule.every(10).seconds.do(receiverInstances.reportToGraphite)
+    # schedule.every(10).seconds.do(receiverInstances.reportToGraphite)
 
     return receiverInstances
 

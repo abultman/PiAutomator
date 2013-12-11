@@ -2,10 +2,9 @@ from RuleParser import *
 from rules import *
 
 
-def init(config, inputs, receivers):
+def init(context):
     parser = RuleParser()
-    context = RuleContext(inputs, receivers)
-    [context.add_rule(parser.parse(rule, context)) for rule in config.rules()]
-    context.start()
-    return context
+    rule_context = RuleContext(context)
+    [rule_context.add_rule(parser.parse(rule, rule_context)) for rule in context.config.rules()]
+    return rule_context
 
