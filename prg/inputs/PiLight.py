@@ -34,7 +34,10 @@ class PiLight(AnInput):
         pilight_sensors["%s.%s" %(self.room, self.input)] = self
 
     def update(self, data):
-        self.publish(data['values'])
+        if self.name == 'all':
+            self.publish(data['values'], 'pilight.%s.%s' % (data['location'], data['device']))
+        else:
+            self.publish(data['values'])
 
 class PiLightDaemon(object):
     def __init__(self, host, port):
@@ -48,6 +51,8 @@ class PiLightDaemon(object):
         self.socket.connect((self.host, self.port))
         self.socket.send(json.dumps({'message': 'client gui'}))
         __logger__.info("connected to pilight as a receiver")
+        self.socket.send(json.dumps({'message': 'request config'}))
+        self.socket.recv
 
     def receive(self):
         while True:
@@ -64,15 +69,27 @@ class PiLightDaemon(object):
                 new_buffer = message
         self.current_buffer = new_buffer
 
+    def process_device_message(self, message):
+        devices = message['devices']
+        for device in devices:
+            inputs = devices[device]
+            for input in inputs:
+                key = "%s.%s" % (device, input)
+                if key in pilight_sensors:
+                    pilight_sensors[key].update(message)
+                elif 'all' in pilight_sensors:
+                    pilight_sensors['all'].update(message)
+
+    def process_config_message(self, message):
+        config = message['config']
+        __logger__.info("Configuration of PiLight\n%s", config)
+
+
     def process_message(self, messagestr):
         __logger__.debug(messagestr)
         message = json.loads(messagestr)
         if 'devices' in message:
-            devices = message['devices']
-            for device in devices:
-                inputs = devices[device]
-                for input in inputs:
-                    key = "%s.%s" % (device, input)
-                    if key in pilight_sensors:
-                        pilight_sensors[key].update(message)
+            self.process_device_message(message)
+        if 'config' in message:
+            self.process_config_message(message)
 

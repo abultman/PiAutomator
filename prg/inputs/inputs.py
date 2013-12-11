@@ -10,8 +10,11 @@ class AnInput(object):
         self.name = name
         self.settings = settings
 
-    def publish(self, value):
-        self.context.publishInputValues(self.name, value)
+    def publish(self, value, name = None):
+        if name:
+            self.context.publishInputValues(name, value)
+        else:
+            self.context.publishInputValues(self.name, value)
 
     def get(self, name=None):
         self.context.get
