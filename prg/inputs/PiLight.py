@@ -37,7 +37,11 @@ class PiLight(AnInput):
         if self.name == 'all':
             self.publish(data['values'], 'pilight.%s.%s' % (data['location'], data['device']))
         else:
-            self.publish(data['values'])
+            values = data['values']
+            result = {}
+            for key in values:
+                result[key] = float(self.values[key]) * self.scale
+            self.publish(result)
 
 class PiLightDaemon(object):
     def __init__(self, host, port):

@@ -18,7 +18,7 @@ class GraphiteReporter(object):
 
         if graphite_should_be_enabled():
             try:
-                self.g = GraphiteClient(prefix='home', group='%s.' % self.type,
+                self.g = GraphiteClient(prefix='', group='%s.' % self.type,
                                         graphite_server=self.config.getSetting(['graphite', 'host']))
             except:
                 e = sys.exc_info()
