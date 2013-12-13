@@ -84,7 +84,7 @@ class PiLightDaemon(object):
                     new_buffer = message
             self.current_buffer = new_buffer
         except:
-            pass
+            __logger__.warn("exception happened")
 
     def process_device_message(self, message):
         devices = message['devices']
