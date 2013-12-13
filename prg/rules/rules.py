@@ -8,15 +8,27 @@ operators = {
     "equal to": lambda x, y: str(x) == str(y)
 }
 
+__logger__ = logging.getLogger(("rules"))
+__logger__.setLevel(logging.INFO)
 
 class RuleState(object):
-    def __init__(self, rule_id, rule_name):
+    def __init__(self, rule_id, rule_name, context):
+        """
+        @type context: RuleContext
+        """
+        def get_value(name):
+            value = context.automation_context.getRuleValue(rule_id + "." + name)
+            if value == None:
+                return 0
+            return value
+
+        self.context = context
         self.data = {
-            "total_fired_count": 0,
-            "total_success_count": 0,
-            "total_failed_count": 0,
-            "success_state": 0,
-            "failed_state": 0
+            "total_fired_count": get_value("total_fired_count"),
+            "total_success_count": get_value("total_success_count"),
+            "total_failed_count": get_value("total_failed_count"),
+            "success_state": get_value("success_state"),
+            "failed_state": get_value("failed_state")
         }
         self.rule_id = rule_id
         self.rule_name = rule_name
@@ -61,9 +73,9 @@ class Rule(object):
         if self.override and len(data["override"]) == 1:
             warning = "rule '%s' has override configuration and will turn a possible override state off"
             self.overrideOff = True
-            logging.warn(warning % rule_state.rule_name)
+            __logger__.info(warning % rule_state.rule_name)
         elif self.override:
-            logging.warn(
+            __logger__.info(
                 "rule '%s' has override configuration and will turn a possible override state on" % rule_state.rule_name)
         self.rule_state = rule_state
         self.rule_context = rule_context
@@ -78,7 +90,7 @@ class Rule(object):
         if should_rule_fire():
             [action.perform(self.rule_context, self.rule_state, self.override, self.overrideOff) for action in self.actions]
             self.rule_state.success()
-            logging.debug('fired %s', self.rule_state.rule_name)
+            __logger__.debug('fired %s', self.rule_state.rule_name)
 
     def publish(self):
         pass
@@ -110,10 +122,12 @@ class RuleContext(object):
     def start(self):
         self.started = True
         [rule.start() for rule in self.rules.values()]
-        # self.schedule = schedule.every(5).seconds.do(self.checkrules)
+        __logger__.info("Rule context started")
+
 
     def stop(self):
         [rule.stop() for rule in self.rules.values()]
+        __logger__.info("Rule context stopped")
 
     def checkrules(self):
         self.findMatchingRules().andPerformTheirActions()

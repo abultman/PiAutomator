@@ -90,5 +90,5 @@ class RuleParser(object):
         rule_id = raw_parse.get('rule-id', 'rule-%d' % self.rules_parsed)
         rule_type = raw_parse.getName()
         my_class = _known_rules[rule_type]
-        rule_state = RuleState(rule_id, toParse)
+        rule_state = RuleState(rule_id, toParse, rule_context)
         return my_class(rule_context, rule_state, raw_parse[rule_type])

@@ -34,6 +34,7 @@ class PiLight(AnInput):
         pilight_sensors["%s.%s" %(self.room, self.input)] = self
 
     def update(self, data, publish_key = None):
+        if not self.started: return
         origvalues = data['values']
         values = {}
         for key in origvalues:

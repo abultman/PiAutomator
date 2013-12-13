@@ -2,6 +2,7 @@ import Queue
 import threading
 
 import schedule
+import time
 from config import LocalSettings
 
 from graphitereporter import *
@@ -25,12 +26,7 @@ def __load_receiver__(elem, config):
     return __myclasses__[elem]
 
 
-jobqueue = Queue.Queue()
 
-
-def __worker_main__():
-    while True:
-        jobqueue.get()()
 
 
 def init(automation_context):
@@ -40,12 +36,6 @@ def init(automation_context):
         my_class = __load_receiver__(inputs[name]['type'], automation_context.config)
         instantiatedInputs.addInput(my_class(name, automation_context, LocalSettings(inputs[name])))
 
-    instantiatedInputs.refreshAll()
-    schedule.every(10).seconds.do(instantiatedInputs.refreshAll)
-
-    worker_thread = threading.Thread(target=__worker_main__)
-    worker_thread.daemon = True
-    worker_thread.start()
 
     return instantiatedInputs
 
@@ -56,6 +46,8 @@ class Inputs(object):
     """
     def __init__(self):
         self.inputs = {}
+        self.jobqueue = Queue.Queue()
+
 
     def addInput(self, input):
         """
@@ -67,7 +59,32 @@ class Inputs(object):
         """
         Any input that has a refresh method (for instance subclasses of PollingInput, get refreshed at this point
         """
-        [jobqueue.put(input.refresh) for input in self.inputs.values() if hasattr(input, 'refresh')]
+        [self.jobqueue.put(input.refresh) for input in self.inputs.values() if hasattr(input, 'refresh')]
+
+    def start(self):
+        worker_thread = threading.Thread(target=self.__worker_main__)
+        worker_thread.daemon = True
+        worker_thread.start()
+
+        [input.start() for input in self.inputs.values()]
+
+        self.refreshAll()
+        self.schedule = schedule.every(10).seconds.do(self.refreshAll)
+        __logger__.info("Inputs started")
+
+    def stop(self):
+        schedule.cancel_job(self.schedule)
+
+        [input.stop() for input in self.inputs.values()]
+
+        while self.jobqueue.qsize() > 0:
+            time.sleep(0.01)
+        __logger__.info("Inputs stopped")
 
     def __getitem__(self, key):
         return self.inputs[key]
+
+    def __worker_main__(self):
+        while True:
+            self.jobqueue.get()()
+

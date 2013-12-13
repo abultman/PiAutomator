@@ -17,8 +17,11 @@ class Receiver(object):
         self.any_state = settings.getsetting("any-state", False)
         self.maintain_state = settings.getsetting("maintain-state", True)
         self.context = context
+        self.started = False
 
     def do(self, verb, incoming_state, override=False):
+        if not self.started: return
+
         if (not self.any_state and incoming_state not in self.supported_states()):
             raise StateError("Illegal state passed to set. %s not in %s" % (incoming_state, self.supported_states()))
 
@@ -66,5 +69,12 @@ class Receiver(object):
                 "state_int": self._getForReporting()
             }
         )
+
+    def start(self):
+        self.started = True
+
+    def stop(self):
+        self.started = False
+
 
 

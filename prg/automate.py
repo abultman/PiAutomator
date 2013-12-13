@@ -17,8 +17,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 # Initialize all components
 config = AutomationConfig(basedir)
 context = AutomationContext(config)
-inputs = inputs.init(context)
 context.receivers = receivers.init(context)
+context.inputs = inputs.init(context)
 context.rule_context = rules.init(context)
 
 context.start()

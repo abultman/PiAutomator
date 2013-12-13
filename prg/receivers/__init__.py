@@ -37,12 +37,24 @@ def init(context):
 class Receivers(object):
     def __init__(self, receivers={}):
         self.receivers = receivers
+        self.started = False
 
     def addReceiver(self, receiver):
         """
         @type receiver: receivers.Receiver
         """
         self.receivers[receiver.name] = receiver
+        if self.started:
+            receiver.start()
+
+    def start(self):
+        self.started = True
+        [recv.start() for recv in self.receivers.values()]
+        __logger__.info("Receivers started")
+
+    def stop(self):
+        [recv.stop() for recv in self.receivers.values()]
+        __logger__.info("Receivers stopped")
 
     def reportToGraphite(self):
         for receiver in self.receivers.values():
