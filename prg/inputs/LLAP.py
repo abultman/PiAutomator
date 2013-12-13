@@ -69,6 +69,8 @@ class LLAPDaemon(object):
             n = self.ser.inWaiting()
             if (n > 0):
                 self.current_buffer += self.ser.read(n)
+                __logger__.info(self.current_buffer)
+                self.find_messages()
 
     def find_messages(self):
         try:
