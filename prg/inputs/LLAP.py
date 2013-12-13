@@ -83,15 +83,6 @@ class LLAPDaemon(object):
                  else:
                      self.current_buffer = self.current_buffer[1:]
                      self.find_messages()
-
-            self.find_messages()
-            new_buffer = ""
-            for message in self.current_buffer.splitlines(True):
-                if message.endswith('\n'):
-                    self.process_message(message)
-                else:
-                    new_buffer = message
-            self.current_buffer = new_buffer
         except:
             __logger__.warn("exception happened")
 
