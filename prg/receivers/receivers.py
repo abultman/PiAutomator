@@ -14,32 +14,29 @@ class Receiver(object):
         """
         self.settings = settings
         self.name = name
-        self.state = None
-        self.overrideMode = False
         self.any_state = settings.getsetting("any-state", False)
         self.maintain_state = settings.getsetting("maintain-state", True)
         self.context = context
 
-    def do(self, verb, switch, override=False):
-        if (not self.any_state and switch not in self.supported_states()):
-            raise StateError("Illegal state passed to set. %s not in %s" % (switch, self.supported_states()))
+    def do(self, verb, incoming_state, override=False):
+        if (not self.any_state and incoming_state not in self.supported_states()):
+            raise StateError("Illegal state passed to set. %s not in %s" % (incoming_state, self.supported_states()))
 
-        if override or not self.overrideMode:
-            if not self.maintain_state or self.state != switch or self.state == None:
-                self._setState(verb, switch)
-                __logger__.info("%s %s %s" % (verb, self.name, switch))
-                self.state = switch
-                self.context.publishReceiverValues(self.name, {
-                        "state": switch,
-                        "state_int": self._getForReporting()
-                    }
-            )
+        if override or not self.overrideMode():
+            state = self.get_state()
+            if not self.maintain_state or state != incoming_state or state == None:
+                self.perform_for_state(verb, incoming_state)
+                __logger__.info("%s %s %s" % (verb, self.name, incoming_state))
+                self.set_state(incoming_state)
         else:
             logging.debug(
                 "Receiver %s is in override mode, only rules with override can change it's state now" % self.name)
 
+    def overrideMode(self):
+        return self.context.getReceiverValue(self.name + ".overridemode")
+
     def setOverrideMode(self, override):
-        self.overrideMode = override
+        self.context.publishReceiverValues(self.name, {'overridemode' : override})
         if override:
             logging.warn("Receiver %s just went into override mode" % self.name)
         else:
@@ -48,16 +45,26 @@ class Receiver(object):
     def supported_states(self):
         return ["off", "on"]
 
-    def current_state(self):
-        return self.state
-
     def _getForReporting(self):
         if (not self.any_state):
             value = -1
-            if self.state:
-                value = self.supported_states().index(self.current_state())
+            state = self.get_state()
+            if state:
+                value = self.supported_states().index(state)
             return value
         return -1
 
-    def _setState(self, verb, state):
+    def perform_for_state(self, verb, state):
         None
+
+    def get_state(self):
+        return self.context.getReceiverValue(self.name + ".state")
+
+    def set_state(self, state):
+        self.context.publishReceiverValues(self.name, {
+                "state": state,
+                "state_int": self._getForReporting()
+            }
+        )
+
+

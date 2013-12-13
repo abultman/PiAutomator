@@ -16,7 +16,7 @@ class ProwlReceiver(Receiver):
         self.application = settings['application']
         self.verify()
 
-    def _setState(self, verb, state):
+    def perform_for_state(self, verb, state):
         values = {
             "apikey": self.api_key,
             "application": self.application,

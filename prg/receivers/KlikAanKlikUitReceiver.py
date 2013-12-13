@@ -111,7 +111,7 @@ class KlikAanKlikUitReceiver(receivers.Receiver):
             wiringpi2.digitalWrite(self.pin, False)
             wiringpi2.delayMicroseconds(wait * 31)
 
-    def _setState(self, verb, state):
+    def perform_for_state(self, verb, state):
         self.send_signal(self.settings['address'], int(self.settings['device']), state == 'on')
 
     def send_signal(self, address, device, state):

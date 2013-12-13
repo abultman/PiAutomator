@@ -13,7 +13,7 @@ class PiLight(Receiver):
         self.port = context.config.getSetting(['pilight', 'port'])
 
 
-    def _setState(self, verb, s):
+    def perform_for_state(self, verb, s):
         state = s
         if self.settings['translate-up-down']:
             if state == 'on': state = 'up'

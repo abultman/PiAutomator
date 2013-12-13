@@ -28,7 +28,7 @@ class ToolCommandReceiver(Receiver):
         super(ToolCommandReceiver, self).__init__(name, context, settings)
         self.intools = settings.getsetting('intools', True)
 
-    def _setState(self, verb, state):
+    def perform_for_state(self, verb, state):
         command = None
         if self.intools:
             command = "%s/tools/%s" % (self.config.get_basedir(), self.settings['command'])
