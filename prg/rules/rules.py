@@ -75,10 +75,10 @@ class Rule(object):
         def should_rule_fire():
             return self.rule_state['success_state'] == 0
 
-        [action.perform(self.rule_context, self.rule_state, self.override, self.overrideOff) for action in self.actions]
         if should_rule_fire():
+            [action.perform(self.rule_context, self.rule_state, self.override, self.overrideOff) for action in self.actions]
             self.rule_state.success()
-            logging.warn('fired %s', self.rule_state.rule_name)
+            logging.debug('fired %s', self.rule_state.rule_name)
 
     def publish(self):
         pass
