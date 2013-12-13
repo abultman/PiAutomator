@@ -1,4 +1,6 @@
 conf/config.yaml
+conf/state.json
 *.pyc
 .idea/
 .*
+report

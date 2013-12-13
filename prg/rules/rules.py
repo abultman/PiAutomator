@@ -122,6 +122,13 @@ class RuleContext(object):
     def start(self):
         self.started = True
         [rule.start() for rule in self.rules.values()]
+        rule_values = self.automation_context.getRuleValue()
+        rules_to_delete = []
+        for rule_id in rule_values:
+            if rule_id not in self.rules:
+                rules_to_delete.append(rule_id)
+        for rule_id in rules_to_delete:
+            rule_values.pop(rule_id)
         __logger__.info("Rule context started")
 
 
