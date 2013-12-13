@@ -61,6 +61,7 @@ class LLAPDaemon(object):
     def __init__(self):
         self.p = re.compile('a[A-Z][A-Z][A-Z0-9.-]{9,}.*')
         self.ser = serial.Serial("/dev/ttyAMA0", 9600)
+        self.current_buffer = ""
 
     def receive(self):
         __logger__.info("Starting in receiving mode for llap")
