@@ -34,6 +34,7 @@ class PiLight(AnInput):
         pilight_sensors["%s.%s" %(self.room, self.input)] = self
 
     def update(self, data, publish_key = None):
+        __logger__.info("%s %s %s", self.name, publish_key, self.started)
         if not self.started: return
         origvalues = data['values']
         values = {}
@@ -73,7 +74,7 @@ class PiLightDaemon(object):
             self.find_messages()
 
     def find_messages(self):
-        if self.started:
+        try:
             new_buffer = ""
             for message in self.current_buffer.splitlines(True):
                 if message.endswith('\n'):
@@ -81,6 +82,8 @@ class PiLightDaemon(object):
                 else:
                     new_buffer = message
             self.current_buffer = new_buffer
+        except:
+            pass
 
     def process_device_message(self, message):
         devices = message['devices']
@@ -96,7 +99,7 @@ class PiLightDaemon(object):
 
     def process_config_message(self, message):
         config = message['config']
-        __logger__.debug("Configuration of pilight\n%s", json.dumps(config, indent=2).encode('utf-8'))
+        __logger__.info("Configuration of pilight\n%s", json.dumps(config, indent=2).encode('utf-8'))
 
 
     def process_message(self, messagestr):
