@@ -95,7 +95,7 @@ class PiLightDaemon(object):
 
     def process_config_message(self, message):
         config = message['config']
-        __logger__.info("Configuration of pilight\n%s", json.dumps(json.loads(config), indent=2).encode('utf-8'))
+        __logger__.debug("Configuration of pilight\n%s", json.dumps(config, indent=2).encode('utf-8'))
 
 
     def process_message(self, messagestr):
