@@ -73,6 +73,7 @@ class LLAPDaemon(object):
         try:
             self.current_buffer = ''.join(dropwhile(lambda x: not x == 'a', (i for i in self.current_buffer)))
             if len(self.current_buffer) >= 12:  # 12 is the LLAP message length
+                 __logger__.info(self.current_buffer)
                  if self.p.match(self.current_buffer):
                      self.process_device_message(self.current_buffer[0:12])
                      self.current_buffer = self.current_buffer[12:]
@@ -92,6 +93,7 @@ class LLAPDaemon(object):
             __logger__.warn("exception happened")
 
     def process_device_message(self, message):
+        __logger__.info(message)
         device = message[1:3]
         command = message[3:].replace('-','')
         if command == 'HELLO':
