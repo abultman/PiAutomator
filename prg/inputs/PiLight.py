@@ -20,9 +20,9 @@ def init(config):
     receiver = PiLightDaemon(
         config.getSetting(['pilight', 'host'], '127.0.0.1'),
         config.getSetting(['pilight', 'port'], 5000))
-    worker_thread = threading.Thread(target=receiver.receive)
-    worker_thread.daemon = True
-    worker_thread.start()
+    pilightthread = threading.Thread(target=receiver.receive)
+    pilightthread.daemon = True
+    pilightthread.start()
 
 class PiLight(AnInput):
     def __init__(self,  name, context, settings):
