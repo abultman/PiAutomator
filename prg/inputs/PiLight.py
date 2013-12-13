@@ -68,8 +68,9 @@ class PiLightDaemon(object):
         self.socket.recv
 
     def receive(self):
+        __logger__.info("Starting in receiving mode for pilight")
         while True:
-            msg = self.socket.recv(12)
+            msg = self.socket.recv(1024)
             self.current_buffer = "%s%s" %(self.current_buffer, msg)
             self.find_messages()
 
