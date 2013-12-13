@@ -29,7 +29,7 @@ class PiLight(Receiver):
                 'state': state,
             }
         }
-        __logger__.info(message)
+        __logger__.debug(message)
         s.send(json.dumps(message, ensure_ascii = True))
         s.close()
 
