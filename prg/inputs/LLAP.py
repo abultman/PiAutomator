@@ -60,8 +60,6 @@ class LLAP(AnInput):
 class LLAPDaemon(object):
     def __init__(self):
         self.p = re.compile('a[A-Z][A-Z][A-Z0-9.-]{9,}.*')
-
-    def open(self):
         self.ser = serial.Serial("/dev/ttyAMA0", 9600)
 
     def receive(self):
