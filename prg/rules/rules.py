@@ -15,23 +15,28 @@ class RuleState(object):
             "total_fired_count": 0,
             "total_success_count": 0,
             "total_failed_count": 0,
-            "consecutive_success_count": 0,
-            "consecutive_failed_count": 0
+            "success_state": 0,
+            "failed_state": 0
         }
         self.rule_id = rule_id
         self.rule_name = rule_name
 
     def success(self):
-        self.incr("total_fired_count")
-        self.incr("total_success_count")
-        self.incr("consecutive_success_count")
-        self.reset("consecutive_failed_count")
+        if self.data["success_state"] == 0:
+            self.incr("total_fired_count")
+            self.incr("total_success_count")
+            self.data["success_state"] = 1
+            self.reset("failed_state")
 
     def failed(self):
-        self.incr("total_fired_count")
-        self.incr("total_failed_count")
-        self.incr("consecutive_failed_count")
-        self.reset("consecutive_success_count")
+        if self.data["failed_state"] == 0:
+            self.incr("total_fired_count")
+            self.incr("total_failed_count")
+            self.data["failed_state"] = 1
+            self.reset("success_state")
+
+    def __getitem__(self, item):
+        return self.data[item]
 
     def reset(self, name):
         self.data[name] = 0
@@ -67,8 +72,13 @@ class Rule(object):
         return False
 
     def performActions(self):
+        def should_rule_fire():
+            return self.rule_state['success_state'] == 0
+
         [action.perform(self.rule_context, self.rule_state, self.override, self.overrideOff) for action in self.actions]
-        self.rule_state.success()
+        if should_rule_fire():
+            self.rule_state.success()
+            logging.warn('fired %s', self.rule_state.rule_name)
 
     def publish(self):
         pass

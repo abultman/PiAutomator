@@ -83,9 +83,10 @@ class AutomationContext(object):
     def __rule_eval__(self):
         while True:
             self.trigger.get()
+            # wait a while to give other values a chance to catch up
+            time.sleep(0.01)
             __logger__.debug("State changed, firing rules")
             if self.rule_context: self.rule_context.checkrules()
-            else: print 'nope'
             self.trigger.task_done()
             __logger__.debug("done firing rules")
 
@@ -106,7 +107,7 @@ class AutomationContext(object):
         self._publishPrefixed('input', path, values)
 
     def publishRuleValues(self, path, values):
-        self._publishPrefixed('rule', path, values, False)
+        self._publishPrefixed('rule', path, values)
 
     def publishReceiverValues(self, path, values):
         self._publishPrefixed('receiver', path, values)
