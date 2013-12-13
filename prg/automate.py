@@ -12,7 +12,7 @@ import rules
 from config import AutomationConfig
 
 basedir = os.path.normpath("%s/.." % (os.path.dirname(os.path.abspath(__file__))))
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
 
 # Initialize all components
 config = AutomationConfig(basedir)
