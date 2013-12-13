@@ -6,6 +6,7 @@ import logging
 import threading
 import re
 import serial
+import sys
 from inputs import AnInput
 
 def _true(value = None):
@@ -83,6 +84,7 @@ class LLAPDaemon(object):
                      self.current_buffer = self.current_buffer[1:]
                      self.find_messages()
         except:
+            __logger__.exception(sys.exc_info()[0])
             __logger__.warn("exception happened")
 
     def process_device_message(self, message):
@@ -95,4 +97,4 @@ class LLAPDaemon(object):
             __logger__.info("We were asked to change our device id, but we're only listening:), %s", command)
         elif device in lllap_sensors:
             llap_sensor = lllap_sensors[device]
-            llap_sensor.update(llap_sensor)
+            llap_sensor.update(command)
