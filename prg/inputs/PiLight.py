@@ -34,7 +34,6 @@ class PiLight(AnInput):
         pilight_sensors["%s.%s" %(self.room, self.input)] = self
 
     def update(self, data, publish_key = None):
-        __logger__.info("%s %s %s", self.name, publish_key, self.started)
         if not self.started: return
         origvalues = data['values']
         values = {}
@@ -100,7 +99,7 @@ class PiLightDaemon(object):
 
     def process_config_message(self, message):
         config = message['config']
-        __logger__.info("Configuration of pilight\n%s", json.dumps(config, indent=2).encode('utf-8'))
+        __logger__.info("Configuration of pilight\n%s", config)
 
 
     def process_message(self, messagestr):
