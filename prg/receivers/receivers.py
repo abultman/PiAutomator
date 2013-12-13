@@ -4,6 +4,8 @@ import logging
 class StateError(Exception):
     pass
 
+__logger__ = logging.getLogger("receiver")
+__logger__.setLevel(logging.INFO)
 
 class Receiver(object):
     def __init__(self, name, context, settings):
@@ -25,7 +27,7 @@ class Receiver(object):
         if override or not self.overrideMode:
             if not self.maintain_state or self.state != switch or self.state == None:
                 self._setState(verb, switch)
-                logging.warn("%s %s %s %s %s" % (verb, self.name, switch, self.state, self.maintain_state ))
+                __logger__.info("%s %s %s" % (verb, self.name, switch))
                 self.state = switch
                 self.context.publishReceiverValues(self.name, {
                         "state": switch,
