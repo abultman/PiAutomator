@@ -73,13 +73,14 @@ class PiLightDaemon(object):
             self.find_messages()
 
     def find_messages(self):
-        new_buffer = ""
-        for message in self.current_buffer.splitlines(True):
-            if message.endswith('\n'):
-                self.process_message(message)
-            else:
-                new_buffer = message
-        self.current_buffer = new_buffer
+        if self.started:
+            new_buffer = ""
+            for message in self.current_buffer.splitlines(True):
+                if message.endswith('\n'):
+                    self.process_message(message)
+                else:
+                    new_buffer = message
+            self.current_buffer = new_buffer
 
     def process_device_message(self, message):
         devices = message['devices']
