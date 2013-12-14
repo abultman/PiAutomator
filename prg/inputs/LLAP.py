@@ -83,7 +83,8 @@ class LLAPDaemon(object):
                     self.current_buffer += self.__read__(n)
                 self.find_messages()
         except:
-            pass
+            __logger__.exception(sys.exc_info()[0])
+            __logger__.warn("exception happened")
 
     def __read__(self, size = 1):
         result = self.ser.read(size)
