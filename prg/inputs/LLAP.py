@@ -3,6 +3,7 @@ This input module supports getting data from pilight (http://http://www.pilight.
 """
 from itertools import dropwhile
 import logging
+import tempfile
 import threading
 import re
 import serial
@@ -24,7 +25,7 @@ llap_commands = {
     'BATT': ['batterylevel', float],
     'STARTED': ['lowbattery', _false],
     'LVAL': ['lightlevel', float],
-        'TEMP': ['temperature', float],
+    'TEMP': ['temperature', float],
     'TMPA': ['temperature', float],
     'ANA': ['analog', int],
     'BUTTON': ['button', str]
@@ -36,7 +37,11 @@ def init(config):
 
     @type config: config.AutomationConfig
     """
-    receiver = LLAPDaemon()
+
+    receiver = LLAPDaemon(
+        config.getSetting(['llap','device'], '/dev/ttyAMA0'),
+        config.getSetting(['llap','print-debug'], False)
+    )
     thread = threading.Thread(target=receiver.receive)
     thread.daemon = True
     thread.start()
@@ -59,22 +64,35 @@ class LLAP(AnInput):
                 return
 
 class LLAPDaemon(object):
-    def __init__(self):
+    def __init__(self, device, debug):
         self.p = re.compile('a[A-Z][A-Z][A-Z0-9.-]{9,}.*')
-        self.ser = serial.Serial("/dev/ttyAMA0", 9600)
+        self.ser = serial.Serial(device, 9600)
+        self.debug = debug
         self.current_buffer = ""
+        if (debug):
+            self.debug_file = tempfile.NamedTemporaryFile()
+            __logger__.info("Debugging serial input to %s", self.debug_file.name)
 
     def receive(self):
         __logger__.info("Starting in receiving mode for llap")
         try:
             while True:
-                self.current_buffer += self.ser.read(1)
+                self.current_buffer += self.__read__(1)
                 n = self.ser.inWaiting()
                 if (n > 0):
-                    self.current_buffer += self.ser.read(n)
+                    self.current_buffer += self.__read__(n)
                 self.find_messages()
         except:
             pass
+
+    def __read__(self, size = 1):
+        result = self.ser.read(size)
+        if self.debug:
+            # Nice thing about tmp files is that Python will clean them on
+            # system close
+            self.debug_file.write(result)
+            self.debug_file.flush()
+        return result
 
     def find_messages(self):
         try:
