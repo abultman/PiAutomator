@@ -72,6 +72,8 @@ class LLAPDaemon(object):
         if (debug):
             self.debug_file = tempfile.NamedTemporaryFile()
             __logger__.info("Debugging serial input to %s", self.debug_file.name)
+            self.debug_file.write("----- Serial input debug file -----\n")
+            self.debug_file.flush()
 
     def receive(self):
         __logger__.info("Starting in receiving mode for llap")
