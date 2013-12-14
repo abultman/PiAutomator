@@ -63,6 +63,10 @@ class AutomationContext(object):
                 self.__export_data_path__(path + "." + key, values[key])
         elif is_number(values):
             self.reporter.send(path, values)
+        elif values == True:
+            self.reporter.send(path, 1)
+        elif values == False:
+            self.reporter.send(path, 0)
 
     def __publish_values__(self):
         __logger__.info("Starting central value publish thread")
