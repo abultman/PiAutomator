@@ -68,10 +68,11 @@ class LLAPDaemon(object):
         __logger__.info("Starting in receiving mode for llap")
         try:
             while True:
+                self.current_buffer += self.ser.read(1)
                 n = self.ser.inWaiting()
                 if (n > 0):
                     self.current_buffer += self.ser.read(n)
-                    self.find_messages()
+                self.find_messages()
         except:
             pass
 
