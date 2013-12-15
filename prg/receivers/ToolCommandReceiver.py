@@ -9,6 +9,7 @@ from receivers import *
 jobqueue = Queue.Queue()
 
 __logger__ = logging.getLogger("tool-command-receiver")
+__logger__.setLevel(logging.INFO)
 
 
 def init(config):
@@ -36,5 +37,6 @@ class ToolCommandReceiver(Receiver):
             command = self.settings['command']
         args = self.settings['args'].replace("${state}", state).replace("${name}", self.name).replace("${verb}", verb)
         toexec = "%s %s" % (command, args)
+        __logger__.debug(toexec)
         jobqueue.put(toexec)
 
