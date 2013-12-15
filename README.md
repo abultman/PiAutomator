@@ -13,11 +13,142 @@ Required libs
 -------------
 A couple of python modules were used in the writing of this software. You should install then too:
 
-* schedule
 * PyYAML
-* graphitesend
 * pyparsing
-* wiringpi2
+* schedule -> Actually is included for now, but only until I get a pull request merged
+* graphitesend -> If you want to enable graphite data sending
+* wiringpi2 -> If you're using the direct KAKU controller
+* pyserial -> If you want to use the LLAP receivers
+
+to get them all:
+
+```
+sudo pip install PyYAML pyparsing schedule graphitesend  pyserial wiringpi2
+```
+
+Note that wiringpi only works on raspberry pi and is only needed for pin access. So if you have no pins, don't
+install wiringpi2:
+
+```
+sudo pip install PyYAML pyparsing schedule graphitesend  pyserial
+```
+
+Rules
+-----
+Rules are used to make stuff happen in PiAutomator. There are two kinds of rules currently supported
+
+1. Schedule rules
+2. Conditional rules
+
+### Schedule rules
+Schedule rules make something happen on set times during the day/week/hour
+
+basic format is:
+```
+every <schedule> <action>
+```
+
+#### singular rules:
+
+```
+every <unit> <at optional_time> <verb> <receiver> <state>
+
+unit: day hour second week sunday weekday weekendday
+optional_time: of the format 'at 10:30' or 'at :30' , only works for day/hour/weekday/weekenday
+verb: any word that makes your text look nice :) -> In the future some receivers might use this for more specificity
+receiver: The name of any receiver to handle the scheduled event
+state: The state to send to the receiver
+
+Note that weekday matches on monday, tuesday, wednesday, thursday, friday so a rule with this unit will fire on all
+those days
+Note that weekendday matches on satureday, sunday so a rule with this unit will fire on all
+those days
+
+Example:
+every day turn lights on
+every weekday at 10:30 turn lights on
+```
+
+#### plural rules
+like singular but with:
+
+```
+every <interval> <unit> <at optional_time> <verb> <receiver> <state>
+
+interval: the interval to set
+unit: days hours seconds weeks
+
+Example
+every 2 days turn lights on
+every 2 days at 10:30 turn lights on
+```
+
+#### day rules
+allows firing on specific days of the week
+
+```
+every <day(s)> <at optional_time> <verb> <receiver> <state>
+
+day(s): monday tuesday wednesday thursday friday saturday sunday
+        -> Allows for multiple days by connecting them with the 'and' keyword
+
+example
+every monday turn lights on
+every monday at 10:30 turn lights on
+every monday and tuesday and friday at 10:30 turn lights on
+```
+
+#### actions
+In the examples above only a single action was performed every time a schedule matched. You can
+execute multiple actions on a single schedule simply by defining more then one separated by 'and'
+
+```
+every day at 8:00 turn lights on and send notification "wake up!"
+```
+
+### Conditional rules
+Conditional rules fire based on certain conditions being met. All conditional rules operate on the AutomationContext
+which stores information about input states, rule states and receiver states. A rule condition can operate on all these.
+when matching, a conditional rule will fire the associated actions (same format as with scheduled rules) once. As long
+as the rule matched and keeps matching, it will only fire once (to prevent event storms)
+
+Format:
+
+```
+when <value_path> is <operator> <value> then <action>
+
+value_path: a path to a value in the context
+operator: an operator on the value. Currently supported less than, greater than, equal to
+value: the value to compare. Casting may occur depending on the operator used
+
+example
+when bathroom.humidity is greater than 60 then turn homefan on
+```
+
+#### value paths
+Every input, rule and receiver in PiAutomator reports to the AutomationContext with values. If values change, a
+reevaluation of all conditional rules is triggered.
+
+value paths are nested name spaces with '.' separators. The context supports the following top level namespaces
+to make sure there are no collisions:
+
+- input
+- rule
+- receiver
+
+when writing a rule with a value path, the context will always first try to find the value using the exact supplied path
+when that cannot be found, it will try to find it in one of the predefined name spaces. You can look in to the dumped
+state from the program if you're unsure about the path.
+
+Example:
+```
+when bathroom.humidity is less than 50 then turn homefan off
+```
+
+In this case _bathroom.humidity_ is the path. When the rule matches, it will first look in the context for the exact
+value, afterwards it will also look for _input.bathroom.humidity_ and _rule.bathroom.humidity_ etc. until it finds
+something or it's options are exhausted.
+
 
 Graphite
 --------
@@ -38,6 +169,15 @@ An example of a rule could be:
 
 - when kitchen.temperature is greater than 25 then turn airconditioning on
 - every day at 20:00 turn outsidelights on
+
+take a look at the included config-example.yaml on what is possible.
+
+To get started:
+
+1. Install the required python libs.
+2. Create a config.yaml in conf/ with your settings
+3. run bin/bin/start-automator.py
+
 
 pilight
 -------
@@ -124,6 +264,8 @@ So for instance based on above config an appropriate rule would be:
 
 DHT22 - Direct
 --------------
+*NOTE:* You don't have to do anything here if you're not using the direct access DHT sensor receiver
+
 install bcm2835 library: http://www.airspayce.com/mikem/bcm2835/
 
 To read the DHT22 sensor directly, this wonderfull piece of software was used:
