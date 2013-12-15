@@ -17,6 +17,10 @@ pilight:
   host: 127.0.0.1
   port: 5000
 
+llap:
+  device: /dev/ttyAMA0 # the serial device to connect to, /dev/ttyAMA0 is the default
+  print-debug: true # Print incoming serial traffic to a debug file. Default is false. Check the logoutput for the file location
+
 receivers:
 
   # Simple example of a ToolCommandReceiver that calls echo
