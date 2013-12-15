@@ -48,10 +48,9 @@ class Receiver(object):
     def supported_states(self):
         return ["off", "on"]
 
-    def _getForReporting(self):
+    def _getForReporting(self, state):
         if (not self.any_state):
             value = -1
-            state = self.get_state()
             if state:
                 value = self.supported_states().index(state)
             return value
@@ -66,7 +65,7 @@ class Receiver(object):
     def set_state(self, state):
         self.context.publishReceiverValues(self.name, {
                 "state": state,
-                "state_int": self._getForReporting()
+                "state_int": self._getForReporting(state)
             }
         )
 
