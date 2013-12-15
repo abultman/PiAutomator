@@ -12,11 +12,15 @@ __logger__.setLevel(logging.INFO)
 __lock__ = threading.Lock()
 
 class AutomationContext(object):
-    def __start_local_threads(self):
+    def __start_publish_queue__(self):
         thread = threading.Thread(target=self.__publish_values__)
         thread.daemon = True
         thread.start()
         self.__publish_thread__ = thread
+        return thread
+
+    def __start_local_threads(self):
+        self.__start_publish_queue__()
         thread = threading.Thread(target=self.__rule_eval__)
         thread.daemon = True
         thread.start()
@@ -45,7 +49,6 @@ class AutomationContext(object):
         self.publish_queue = Queue()
         self.reporter = GraphiteReporter(config)
         self.values = self.load()
-        self.__start_local_threads()
 
     def __export_data__(self):
         self.__export_data_path__("automation_context", self.values)
@@ -165,6 +168,8 @@ class AutomationContext(object):
         self.schedule = schedule.every(10).seconds.do(self.__force_run__)
         self.rule_context.start()
         self.inputs.start()
+
+        self.__start_local_threads()
         __logger__.info("Automation started")
 
     def stop(self):
@@ -182,27 +187,29 @@ class AutomationContext(object):
         __logger__.info("Automation stopped")
 
     def save(self):
-        filename = "%s/conf/state.json" % self.config.get_basedir()
-        with open(filename, 'w') as outfile:
-            json.dump(self.values, outfile, indent=4)
-        __logger__.info("Stated saved")
+        if self.config.getSetting(['automator', 'save_state']):
+            filename = "%s/conf/state.json" % self.config.get_basedir()
+            with open(filename, 'w') as outfile:
+                json.dump(self.values, outfile, indent=4)
+            __logger__.info("Stated saved")
 
     def load(self):
-        try:
-            filename = "%s/conf/state.json" % self.config.get_basedir()
-            with open(filename, 'r') as outfile:
-                values = json.load(outfile)
-                __logger__.info("Stated loaded")
-                return values
-        except IOError as ioe:
-            if ioe.errno == 2:
-                __logger__.info("no state file detected")
-            else:
-                __logger__.error("Stated not loaded due to IOError")
-                __logger__.exception(ioe)
-        except ValueError:
-            __logger__.warn("Stated not loaded due invalid json format in state file")
-            print "Invalid json data"
-        __logger__.info("Starting with a clean state")
+        if self.config.getSetting(['automator', 'save-state'], True):
+            try:
+                filename = "%s/conf/state.json" % self.config.get_basedir()
+                with open(filename, 'r') as outfile:
+                    values = json.load(outfile)
+                    __logger__.info("Stated loaded")
+                    return values
+            except IOError as ioe:
+                if ioe.errno == 2:
+                    __logger__.info("no state file detected")
+                else:
+                    __logger__.error("Stated not loaded due to IOError")
+                    __logger__.exception(ioe)
+            except ValueError:
+                __logger__.warn("Stated not loaded due invalid json format in state file")
+                print "Invalid json data"
+            __logger__.info("Starting with a clean state")
         return {}
 
