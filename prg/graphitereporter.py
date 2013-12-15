@@ -13,7 +13,7 @@ class GraphiteReporter(object):
     def __getG(self):
         def graphite_should_be_enabled():
             has_graphite = self.g
-            graphite_enabled = self.config.getSetting(['graphite', 'enabled'])
+            graphite_enabled = self.config.getSetting(['graphite', 'enabled'], False)
             return not has_graphite and graphite_enabled
 
         if graphite_should_be_enabled():
