@@ -43,6 +43,44 @@ pilight
 -------
 PiAutomator supports adding pilight as both inputs and receivers. pilight can read the DHT22 all by itself, should you not want to, you can config it directly.
 
+example of pilight output:
+
+```
+  outsidelights:
+    translate-up-down: true # If using old style KAKY will translate rule action on/off to receiver up/down
+    type: PiLight
+    location: frontgarden  # Location from pilight config
+    device: lights  # device from pilight config
+```
+
+example of specific pilight input:
+```
+   bathroom:
+     type: PiLight
+     location: bathroom  # location from pilight config
+     device: h_t_sensor  # device from pilight config
+     scale: 0.1  # Optional scale you can add to receivers returning numbers (works for all receivers)
+     
+   # corresponding rule
+   - when bathroom.humidity is greater than 70 turn homefan on
+```
+
+you van also add all pilight input to the mix:
+```
+   all-pilight:
+     type: PiLight
+     location: all
+     device: all
+   
+   # corresponding rule
+   # - when pilight.<location>.<device>.<value> is equal to on
+   - when pilight.livingroom.christmastree.state is equal to 'up' then turn music on
+```
+
+Doing this will make all pilight values available for your rules to play with. Specific inputs take precedence over the all, so you can still have individual ones where you think it needed.
+
+If you're unsure about what keys to use, the automator dumps it's state when you stop it. So have a look at the input section there.
+
 http://www.pilight.org/
 
 
