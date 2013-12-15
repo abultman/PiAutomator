@@ -83,6 +83,44 @@ If you're unsure about what keys to use, the automator dumps it's state when you
 
 http://www.pilight.org/
 
+LLAP
+----
+
+PiAutomator support reading (and only readying currently) sensor data from LLAP compatible serial input devices. This is mainly usefull for remote sensors setting up a wireless network.
+
+- Basically, setup your Pi with a wireless receiver of somekind, I use the slice of radio (http://shop.ciseco.co.uk/slice-of-radio-wireless-rf-transciever-for-the-raspberry-pi/)
+- Use other devices to transmit on the correct frequency (for instance using something like http://shop.ciseco.co.uk/xrf-wireless-rf-radio-uart-rs232-serial-data-module-xbee-shape-arduino-pic-etc/)
+
+And set the remote up to send LLAP compatible data.
+- http://openmicros.org/index.php/articles/85-llap-lightweight-local-automation-protocol/101-llap-starter
+- http://openmicros.org/index.php/articles/85-llap-lightweight-local-automation-protocol/112-llap
+- Example: http://www.seanlandsman.com/2013/02/the-raspberry-pi-and-wireless-rf-xrf.html
+
+then add a LLAP receiver per device you have installed:
+```
+  outside1:
+    type: LLAP
+    device-id: AA
+```
+
+the receiver will automatically recognize and publish values for your rules to use. Currently supported are the following LLAP standard metrics:
+```
+    LLAP Command        Reported as         Data type/value
+    BATTLOW             lowbattery          True             -> Turns on low battery state
+    BATT                batterylevel        float
+    STARTED             lowbattery          False            -> Low battery is turned off when STARTED is received. If there is still lowbattery, you will get the BATTLOW again
+    LVAL                lightlevel          float
+    TEMP                temperature         float
+    TMPA                temperature         float
+    ANA                 analog              int
+    BUTTON              button              str              -> Unsure about this one, I don't have it and the docs are a bit unclear to me.
+```
+
+So for instance based on above config an appropriate rule would be:
+```
+  - when outside1.lightlevel is less than 40 then tun outsidelights on
+```
+
 
 DHT22 - Direct
 --------------
