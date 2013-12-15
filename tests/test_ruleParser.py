@@ -56,31 +56,58 @@ class TestRuleParser(TestCase):
         parse = self.parser.parse("every day turn heat up", self.context)
         self.assertIsInstance(parse, ScheduleRule)
 
-        self.assertEqual("schedule.every(1).day", parse.scheduleStr)
+        self.assertEqual("schedule.every(1).day", parse.scheduleStr[0])
 
     def test_scheduled_rule_with_time(self):
         parse = self.parser.parse("every day at 10:40 turn heat up", self.context)
         self.assertIsInstance(parse, ScheduleRule)
 
-        self.assertEqual(parse.scheduleStr, "schedule.every(1).day.at('10:40')")
+        self.assertEqual(parse.scheduleStr[0], "schedule.every(1).day.at('10:40')")
 
     def test_scheduled_rule_with_time_hour(self):
         parse = self.parser.parse("every hour at :30 turn homefan on", self.context)
         self.assertIsInstance(parse, ScheduleRule)
-        self.assertEqual(parse.scheduleStr, "schedule.every(1).hour.at(':30')")
+        self.assertEqual(parse.scheduleStr[0], "schedule.every(1).hour.at(':30')")
 
     def test_scheduled_rule_with_time_hour2(self):
         parse = self.parser.parse("every 5 hours at :30 turn heat up", self.context)
         self.assertIsInstance(parse, ScheduleRule)
-        self.assertEqual(parse.scheduleStr, "schedule.every(5).hours.at(':30')")
+        self.assertEqual(parse.scheduleStr[0], "schedule.every(5).hours.at(':30')")
 
     def test_day_of_week(self):
         parse = self.parser.parse("every monday turn heat up", self.context)
         self.assertIsInstance(parse, ScheduleRule)
-        self.assertEqual(parse.scheduleStr, "schedule.every(1).monday")
+        self.assertEqual(parse.scheduleStr[0], "schedule.every(1).monday")
 
     def test_day_of_week_with_time(self):
         parse = self.parser.parse("every sunday at 12:30 turn heat up", self.context)
         self.assertIsInstance(parse, ScheduleRule)
-        self.assertEqual(parse.scheduleStr, "schedule.every(1).sunday.at('12:30')")
+        self.assertEqual(parse.scheduleStr[0], "schedule.every(1).sunday.at('12:30')")
+
+    def test_every_weekday(self):
+        parse = self.parser.parse("every weekday at 12:30 turn heat up", self.context)
+        self.assertIsInstance(parse, ScheduleRule)
+        self.assertEqual(len(parse.scheduleStr), 5)
+        self.assertEqual(parse.scheduleStr[0], "schedule.every(1).monday.at('12:30')")
+        self.assertEqual(parse.scheduleStr[1], "schedule.every(1).tuesday.at('12:30')")
+        self.assertEqual(parse.scheduleStr[2], "schedule.every(1).wednesday.at('12:30')")
+        self.assertEqual(parse.scheduleStr[3], "schedule.every(1).thursday.at('12:30')")
+        self.assertEqual(parse.scheduleStr[4], "schedule.every(1).friday.at('12:30')")
+
+    def test_every_weekendday(self):
+        parse = self.parser.parse("every weekendday at 12:30 turn heat up", self.context)
+        self.assertIsInstance(parse, ScheduleRule)
+        self.assertEqual(len(parse.scheduleStr), 2)
+        self.assertEqual(parse.scheduleStr[0], "schedule.every(1).saturday.at('12:30')")
+        self.assertEqual(parse.scheduleStr[1], "schedule.every(1).sunday.at('12:30')")
+
+    def test_multiple_days(self):
+        parse = self.parser.parse("every monday and thursday and sunday at 12:30 turn heat up", self.context)
+        self.assertIsInstance(parse, ScheduleRule)
+        self.assertEqual(len(parse.scheduleStr), 3)
+        self.assertEqual(parse.scheduleStr[0], "schedule.every(1).monday.at('12:30')")
+        self.assertEqual(parse.scheduleStr[1], "schedule.every(1).thursday.at('12:30')")
+        self.assertEqual(parse.scheduleStr[2], "schedule.every(1).sunday.at('12:30')")
+
+
 

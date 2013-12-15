@@ -1,5 +1,5 @@
 import logging
-from pyparsing import Suppress, Word, alphas, nums, quotedString, removeQuotes, Group, ZeroOrMore, oneOf, Combine, Optional
+from pyparsing import Suppress, Word, alphas, nums, quotedString, removeQuotes, Group, ZeroOrMore, oneOf, Combine, Optional, ParseException
 from rules import RuleState, operators
 from conditional import ConditionalRule
 from schedulerule import ScheduleRule
@@ -9,12 +9,12 @@ _known_rules = {
     'schedule-rule': ScheduleRule
 }
 
+__logger__ = logging.getLogger('rule-parser')
+__logger__.setLevel(logging.INFO)
 
 class RuleParser(object):
     def __init__(self):
         self.rules_parsed = 0
-        self.logger = logging.getLogger("rule-parser")
-        self.logger.setLevel(logging.INFO)
         dot = Suppress(".")
         colon = Word(":")
         _is = Suppress("is")
@@ -59,14 +59,20 @@ class RuleParser(object):
         def schedule_rule():
             timeIndication = at + Combine(Optional(number) + colon + number).setResultsName("time")
 
-            recurring2 = Group(
+            recurringPlural = Group(
                 every + number.setResultsName("count") + oneOf("days hours seconds weeks").setResultsName(
                     "unit") + Optional(timeIndication)).setResultsName("pluralSchedule")
-            recurring1 = Group(
-                every + oneOf("day hour second week monday tuesday wednesday thursday friday saturday sunday").setResultsName("unit") + Optional(timeIndication)).setResultsName(
+
+            recurringSingular = Group(
+                every + oneOf("day hour second week sunday weekday weekendday").setResultsName("unit") + Optional(timeIndication)).setResultsName(
                 "singularSchedule")
 
-            return (recurring1 | recurring2) + actions + Optional(override + Optional("off")).setResultsName("override")
+            dayOfWeek = oneOf("monday tuesday wednesday thursday friday saturday sunday")
+            recurringDay = Group(
+                every + Group(ZeroOrMore(dayOfWeek + _and) + dayOfWeek).setResultsName("unit") + Optional(timeIndication)).setResultsName(
+                "singularSchedule")
+
+            return (recurringPlural | recurringSingular |recurringDay) + actions + Optional(override + Optional("off")).setResultsName("override")
 
         rule_type = (
             receiver_input_rule().setResultsName("input-rule") |
@@ -80,7 +86,12 @@ class RuleParser(object):
         @rtype: matplotlib.pyparsing.ParseResults
         """
         self.rules_parsed = self.rules_parsed + 1
-        return self.rule.parseString(toParse, parseAll=True)
+        try :
+            return self.rule.parseString(toParse, parseAll=True)
+        except ParseException as e:
+            __logger__.error("Error parsing rule %s", toParse)
+            __logger__.exception(e)
+            raise e
 
     def parse(self, toParse, rule_context):
         """

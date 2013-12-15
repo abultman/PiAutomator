@@ -283,6 +283,7 @@ class Job(object):
         logger.info('Running job %s', self)
         ret = self.job_func()
         self.last_run = datetime.datetime.now()
+        nr = self.next_run
         self._schedule_next_run()
         return ret
 
