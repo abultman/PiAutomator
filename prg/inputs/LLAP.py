@@ -71,6 +71,7 @@ class LLAPDaemon(object):
         self.current_buffer = ""
         if (debug):
             self.debug_file = tempfile.NamedTemporaryFile()
+            self.debug_file.write("----- Serial input debug file -----\n")
             __logger__.info("Debugging serial input to %s", self.debug_file.name)
             self.debug_file.write("----- Serial input debug file -----\n")
             self.debug_file.flush()
@@ -88,7 +89,7 @@ class LLAPDaemon(object):
             __logger__.exception(sys.exc_info()[0])
             __logger__.warn("exception happened")
 
-    def __read__(self, size = 1):
+    def __read__(self, size):
         result = self.ser.read(size)
         if self.debug:
             # Nice thing about tmp files is that Python will clean them on
