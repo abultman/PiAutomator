@@ -57,13 +57,13 @@ class RuleParser(object):
             return when + conditions + then + actions
 
         def schedule_rule():
-            timeIndication = at + Combine(number + Optional(colon + number)).setResultsName("time")
+            timeIndication = at + Combine(Optional(number) + colon + number).setResultsName("time")
 
             recurring2 = Group(
                 every + number.setResultsName("count") + oneOf("days hours seconds weeks").setResultsName(
                     "unit") + Optional(timeIndication)).setResultsName("pluralSchedule")
             recurring1 = Group(
-                every + oneOf("day hour second week").setResultsName("unit") + Optional(timeIndication)).setResultsName(
+                every + oneOf("day hour second week monday tuesday wednesday thursday friday saturday sunday").setResultsName("unit") + Optional(timeIndication)).setResultsName(
                 "singularSchedule")
 
             return (recurring1 | recurring2) + actions + Optional(override + Optional("off")).setResultsName("override")
