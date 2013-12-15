@@ -37,7 +37,6 @@ def init(config):
 
     @type config: config.AutomationConfig
     """
-
     receiver = LLAPDaemon(
         config.getSetting(['llap','device'], '/dev/ttyAMA0'),
         config.getSetting(['llap','print-debug'], False)
@@ -71,7 +70,6 @@ class LLAPDaemon(object):
         self.current_buffer = ""
         if (debug):
             self.debug_file = tempfile.NamedTemporaryFile()
-            self.debug_file.write("----- Serial input debug file -----\n")
             __logger__.info("Debugging serial input to %s", self.debug_file.name)
             self.debug_file.write("----- Serial input debug file -----\n")
             self.debug_file.flush()
