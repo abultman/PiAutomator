@@ -2,17 +2,20 @@
 # Current Version of the config
 version: 1.0
 
+# PiAutomator section, basic config of the automator
+automator:
+  save-state: true # save the state of the context after stop (loaded on restart), default true
+
 # Configure graphite if you have it. if not, set enabled to false
 graphite:
   host: 127.0.0.1
   port: 2003
-  enabled: true
+  enabled: true # Send data to graphite? default false
 
 # piligth section. Required if you add pilight inputs or receivers
 pilight:
   host: 127.0.0.1
   port: 5000
-
 
 receivers:
 
@@ -21,7 +24,7 @@ receivers:
     type: ToolCommandReceiver
     command: echo
     args: ${name} is now ${state}
-    intools: false
+    intools: false # will look in the tools directory of the piautomator project if this is true
 
   # Send a notification to PROWL, you can send yourself a notification when something important happens
   notification:
@@ -44,6 +47,12 @@ receivers:
     type: PiLight
     location: home
     device: homefan
+
+  # Receiver of type LLAP. Usefull for wireless sensing lowlevel inputs
+  # Known LLAP values get translated into context values automatically
+  outside1:
+    type: LLAP
+    device-id: AA
 
 inputs:
 
