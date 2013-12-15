@@ -187,7 +187,7 @@ class AutomationContext(object):
         __logger__.info("Automation stopped")
 
     def save(self):
-        if self.config.getSetting(['automator', 'save-state']):
+        if self.config.getSetting(['automator', 'save-state'], True):
             filename = "%s/conf/state.json" % self.config.get_basedir()
             with open(filename, 'w') as outfile:
                 json.dump(self.values, outfile, indent=4)
