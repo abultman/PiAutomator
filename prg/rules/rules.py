@@ -1,5 +1,4 @@
 import logging
-import schedule
 from actions import Action
 
 operators = {
