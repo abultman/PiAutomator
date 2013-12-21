@@ -58,7 +58,7 @@ class LLAP(AnInput):
         self.device_id = settings['device-id']
         self.values = None
         self.cycle = settings.getsetting('cycle', False)
-        self.cycle_period = settings.getsetting('cycle-time', '005S')
+        self.cycle_period = settings.getsetting('cycle-period', '005S')
         self.read_command = settings.getsetting('read-command', 'TEMP')
         lllap_sensors[self.device_id] = self
 
