@@ -164,7 +164,7 @@ class AutomationContext(object):
 
     def start(self):
         self.receivers.start()
-        self.schedule = schedule.every(10).seconds.do(self.__export_data__)
+        self.schedule = schedule.every(self.config.getSetting(['automator', 'reporting-interval'], 10)).seconds.do(self.__export_data__)
         self.schedule = schedule.every(10).seconds.do(self.__force_run__)
         self.rule_context.start()
         self.inputs.start()
