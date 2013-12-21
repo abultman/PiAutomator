@@ -25,17 +25,12 @@ def __load_receiver__(elem, config):
 
     return __myclasses__[elem]
 
-
-
-
-
 def init(automation_context):
     inputs = automation_context.config.inputs()
     instantiatedInputs = Inputs()
     for name in inputs:
         my_class = __load_receiver__(inputs[name]['type'], automation_context.config)
         instantiatedInputs.addInput(my_class(name, automation_context, LocalSettings(inputs[name])))
-
 
     return instantiatedInputs
 

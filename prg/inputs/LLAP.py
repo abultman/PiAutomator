@@ -2,13 +2,16 @@
 This input module supports getting data from pilight (http://http://www.pilight.org/) and triggering rules accordingly
 """
 from itertools import dropwhile
+from Queue import Queue
 import logging
 import tempfile
 import threading
 import re
 import serial
 import sys
+import time
 from inputs import AnInput
+
 
 def _true(value = None):
     return True
@@ -31,29 +34,45 @@ llap_commands = {
     'BUTTON': ['button', str]
 }
 
+llap_hello_cmds = ['HELLO', 'STARTED', 'AWAKE']
+
+global llap_receiver
+
 def init(config):
     """
     Initializes the pilight receiver connection. Sets up a heartbeat
 
     @type config: config.AutomationConfig
     """
-    receiver = LLAPDaemon(
+    global llap_receiver
+
+    llap_receiver = LLAPDaemon(
         config.getSetting(['llap','device'], '/dev/ttyAMA0'),
         config.getSetting(['llap','print-debug'], False)
     )
-    thread = threading.Thread(target=receiver.receive)
-    thread.daemon = True
-    thread.start()
+
 
 class LLAP(AnInput):
     def __init__(self,  name, context, settings):
         super(LLAP, self).__init__(name, context, settings)
         self.device_id = settings['device-id']
         self.values = None
+        self.cycle = settings.getsetting('cycle', False)
+        self.cycle_period = settings.getsetting('cycle-time', '005S')
+        self.read_command = settings.getsetting('read-command', 'TEMP')
         lllap_sensors[self.device_id] = self
 
     def update(self, sentcommand):
         if not self.started: return
+        __logger__.debug("update: " + sentcommand)
+        if self.cycle:
+            for command in llap_hello_cmds:
+                if sentcommand.startswith(command):
+                    self.send("ACK")
+                    self.send(self.read_command)
+                    self.send("BATT")
+                    self.send("SLEEP" + self.cycle_period)
+
         for command in sorted(llap_commands, key=lambda x: len(x), reverse=True):
             if sentcommand.startswith(command):
                 value = sentcommand[len(command):]
@@ -61,6 +80,15 @@ class LLAP(AnInput):
                 converter = llap_commands[command][1]
                 self.publish({key: converter(value)})
                 return
+
+    def send(self, message):
+        llap_receiver.send(("a" + self.device_id + message).ljust(12,'-'))
+
+    def start(self):
+        super(LLAP, self).start()
+        if self.cycle:
+            # Say hello, show get a response from the other end
+            self.send("HELLO")
 
 class LLAPDaemon(object):
     def __init__(self, device, debug):
@@ -73,6 +101,30 @@ class LLAPDaemon(object):
             __logger__.info("Debugging serial input to %s", self.debug_file.name)
             self.debug_file.write("----- Serial input debug file -----\n")
             self.debug_file.flush()
+
+        self.send_queue = Queue()
+        thread = threading.Thread(target=self.receive)
+        thread.daemon = True
+        thread.start()
+        thread = threading.Thread(target=self.__send__)
+        thread.daemon = True
+        thread.start()
+
+
+    def send(self, message):
+        self.send_queue.put(message)
+
+    def __send__(self):
+        while True:
+            message = self.send_queue.get()
+            try:
+                __logger__.debug("Sending: " + message)
+                self.ser.write(message)
+                # Wait some time, since command that go too quick seem to be a problem
+                time.sleep(0.05)
+            except:
+                __logger__.exception(sys.exc_info()[0])
+                __logger__.warn("exception happened")
 
     def receive(self):
         __logger__.info("Starting in receiving mode for llap")
@@ -113,9 +165,7 @@ class LLAPDaemon(object):
     def process_device_message(self, message):
         device = message[1:3]
         command = message[3:].replace('-','')
-        if command == 'HELLO':
-            __logger__.info("%s said hello", device)
-        elif command.startswith("CHDEVID"):
+        if command.startswith("CHDEVID"):
             __logger__.info("We were asked to change our device id, but we're only listening:), %s", command)
         elif device in lllap_sensors:
             llap_sensor = lllap_sensors[device]
