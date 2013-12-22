@@ -58,7 +58,7 @@ class LLAPCommand(object):
         self.device_id = device_id
 
     def apply(self):
-        __logger__.info("Sending %s %s", self.device_id, self.message)
+        __logger__.debug("Sending %s %s", self.device_id, self.message)
         llap_receiver.send(self.device_id, self.message)
         return not self.wait_for_answer
 
