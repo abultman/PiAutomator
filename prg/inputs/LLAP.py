@@ -31,7 +31,7 @@ llap_commands = {
     'TEMP': ['temperature', float],
     'TMPA': ['temperature', float],
     'ANA': ['analog', int],
-    'BUTTON': ['button', str]
+    'BUTTON': ['button', str],
 }
 
 llap_hello_cmds = ['HELLO', 'STARTED', 'AWAKE']
@@ -51,6 +51,25 @@ def init(config):
         config.getSetting(['llap','print-debug'], False)
     )
 
+class LLAPCommand(object):
+    def __init__(self, device_id, message, wait_for_answer = True):
+        self.message = message
+        self.wait_for_answer = wait_for_answer
+        self.device_id = device_id
+
+    def apply(self):
+        __logger__.info("Sending %s %s", self.device_id, self.message)
+        llap_receiver.send(self.device_id, self.message)
+        return not self.wait_for_answer
+
+    def has_received_reply(self, sentcommand):
+        if sentcommand.startswith("SLEEPING") and self.message.startswith("SLEEP"):
+            __logger__.debug("Received %s %s %s", self.device_id, self.message, sentcommand)
+            return True
+        if sentcommand.startswith(self.message):
+            __logger__.debug("Received %s %s %s", self.device_id, self.message, sentcommand)
+            return True
+        return False
 
 class LLAP(AnInput):
     def __init__(self,  name, context, settings):
@@ -60,44 +79,70 @@ class LLAP(AnInput):
         self.cycle = settings.getsetting('cycle', False)
         self.cycle_period = settings.getsetting('cycle-period', '005S')
         self.read_command = settings.getsetting('read-command', 'TEMP')
+        self.command_queue = []
+        self.inflight = False
         lllap_sensors[self.device_id] = self
-        self.awake = False
-        self.sending = False
 
-    def update(self, sentcommand):
-        self.sending = False
-        if not self.started: return
-        __logger__.debug("update: " + sentcommand)
+    def cycle_hello(self, sentcommand):
         if self.cycle:
             for command in llap_hello_cmds:
-                if sentcommand.startswith("STARTED"):
-                    self.send("ACK")
                 if sentcommand.startswith(command):
-                    self.awake = True
+                    self.command_queue = []
                     self.send(self.read_command)
                     self.send("BATT")
                     self.send("SLEEP" + self.cycle_period)
 
-                if sentcommand.startswith("SLEEPING"):
-                    self.awake = False
-
+    def process_incomming(self, sentcommand):
         for command in sorted(llap_commands, key=lambda x: len(x), reverse=True):
             if sentcommand.startswith(command):
                 value = sentcommand[len(command):]
                 key = llap_commands[command][0]
                 converter = llap_commands[command][1]
                 self.publish({key: converter(value)})
-                return
+                break
 
-    def send(self, message):
-        self.sending = True
-        llap_receiver.send(self.device_id, message)
+    def process_queue(self, sentcommand = "YEAHWHATEVER"):
+        if self.inflight and self.i_received_reply(sentcommand):
+            self.command_queue.pop(0)
+            self.inflight = False
+
+        if not self.inflight:
+            self.send_what_you_can()
+
+    def update(self, sentcommand):
+        if not self.started: return
+        __logger__.debug("update: " + sentcommand)
+        self.cycle_hello(sentcommand)
+        self.process_incomming(sentcommand)
+        self.process_queue(sentcommand)
+
+    def send(self, message, wait_for_it = True):
+        self.command_queue.append(LLAPCommand(self.device_id, message, wait_for_it))
 
     def start(self):
         super(LLAP, self).start()
         if self.cycle:
-            # Say hello, show get a response from the other end
-            self.send("HELLO")
+            # Say hello, should get a response from the other end
+            self.send("HELLO", False)
+            self.process_queue()
+
+    def send_what_you_can(self):
+        while self.send_one():
+            pass
+
+    def send_one(self):
+        if len(self.command_queue) > 0:
+            cmd = self.command_queue[0]
+            if cmd.apply():
+                self.command_queue.pop(0)
+                return True
+            else:
+                self.inflight = True
+                return False
+
+    def i_received_reply(self, sentcommand):
+        return self.command_queue[0].has_received_reply(sentcommand)
+
 
 class LLAPDaemon(object):
     def __init__(self, device, debug):
@@ -123,7 +168,13 @@ class LLAPDaemon(object):
 
 
     def send(self, device, message):
-        self.send_queue.put({'device': device, 'message': message, 'time': time.time() * 1000})
+        self.send_queue.put(
+            {
+                'device': device,
+                'message': message,
+                'time': time.time() * 1000
+            }
+        )
 
     def __send__(self):
         def is_enough_time_passed_for_message(msg):
@@ -134,7 +185,7 @@ class LLAPDaemon(object):
                 device_time = self.inwaiting_times[device]
             device_time = max(message_time, device_time)
             current_time = time.time() * 1000
-            return current_time - device_time > 100
+            return current_time - device_time > 1
 
 
         while True:
