@@ -84,7 +84,7 @@ class LLAPCommand(object):
             return False
         # wait for 200 millis
         elif self.sent_time > 0 and timeout():
-            __logger__.info("Retrying %s %s", self.device_id, self.message)
+            __logger__.debug("Retrying %s %s", self.device_id, self.message)
             self.apply()
             self.retry_times += 1
         return True
