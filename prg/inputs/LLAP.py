@@ -56,10 +56,13 @@ class LLAPCommand(object):
         self.message = message
         self.wait_for_answer = wait_for_answer
         self.device_id = device_id
+        self.sent_time = -1
+        self.retry_times = 0
 
     def apply(self):
         __logger__.debug("Sending %s %s", self.device_id, self.message)
         llap_receiver.send(self.device_id, self.message)
+        self.sent_time = time.time() * 1000
         return not self.wait_for_answer
 
     def has_received_reply(self, sentcommand):
@@ -70,6 +73,17 @@ class LLAPCommand(object):
             __logger__.debug("Received %s %s %s", self.device_id, self.message, sentcommand)
             return True
         return False
+
+    def retry_if_needed(self):
+        current_time = time.time() * 1000
+        if self.retry_times >= 5:
+            return False
+        # wait for 200 millis
+        elif self.sent_time > 0 and current_time - self.sent_time > 200:
+            self.apply()
+            self.retry_times += 1
+        else:
+            return True
 
 class LLAP(AnInput):
     def __init__(self,  name, context, settings):
@@ -143,6 +157,13 @@ class LLAP(AnInput):
     def i_received_reply(self, sentcommand):
         return self.command_queue[0].has_received_reply(sentcommand)
 
+    def retry_any_waiting_commands(self):
+        if self.inflight and len(self.command_queue) > 0:
+            command = self.command_queue[0]
+            if not command.retry_if_needed():
+                __logger__.info("LLAP sensor not responding for 5 times. %s %s, skipping", command.device_id, command.message)
+                self.command_queue.pop(0)
+
 
 class LLAPDaemon(object):
     def __init__(self, device, debug):
@@ -160,6 +181,9 @@ class LLAPDaemon(object):
         self.inwaiting_times = {}
         self.send_queue = Queue()
         thread = threading.Thread(target=self.receive)
+        thread.daemon = True
+        thread.start()
+        thread = threading.Thread(target=self.retry_commands)
         thread.daemon = True
         thread.start()
         thread = threading.Thread(target=self.__send__)
@@ -185,8 +209,7 @@ class LLAPDaemon(object):
                 device_time = self.inwaiting_times[device]
             device_time = max(message_time, device_time)
             current_time = time.time() * 1000
-            return current_time - device_time > 1
-
+            return current_time - device_time > 3
 
         while True:
             msg = self.send_queue.get()
@@ -260,3 +283,9 @@ class LLAPDaemon(object):
         elif device in lllap_sensors:
             llap_sensor = lllap_sensors[device]
             llap_sensor.update(command)
+
+    def retry_commands(self):
+        while True:
+            for sensor in lllap_sensors.values():
+                sensor.retry_any_waiting_commands()
+            time.sleep(0.2)
