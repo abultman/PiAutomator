@@ -61,17 +61,25 @@ class LLAP(AnInput):
         self.cycle_period = settings.getsetting('cycle-period', '005S')
         self.read_command = settings.getsetting('read-command', 'TEMP')
         lllap_sensors[self.device_id] = self
+        self.awake = False
+        self.sending = False
 
     def update(self, sentcommand):
+        self.sending = False
         if not self.started: return
         __logger__.debug("update: " + sentcommand)
         if self.cycle:
             for command in llap_hello_cmds:
-                if sentcommand.startswith(command):
+                if sentcommand.startswith("STARTED"):
                     self.send("ACK")
+                if sentcommand.startswith(command):
+                    self.awake = True
                     self.send(self.read_command)
                     self.send("BATT")
                     self.send("SLEEP" + self.cycle_period)
+
+                if sentcommand.startswith("SLEEPING"):
+                    self.awake = False
 
         for command in sorted(llap_commands, key=lambda x: len(x), reverse=True):
             if sentcommand.startswith(command):
@@ -82,7 +90,8 @@ class LLAP(AnInput):
                 return
 
     def send(self, message):
-        llap_receiver.send(("a" + self.device_id + message).ljust(12,'-'))
+        self.sending = True
+        llap_receiver.send(self.device_id, message)
 
     def start(self):
         super(LLAP, self).start()
@@ -102,6 +111,8 @@ class LLAPDaemon(object):
             self.debug_file.write("----- Serial input debug file -----\n")
             self.debug_file.flush()
 
+        self.inwaiting = {}
+        self.inwaiting_times = {}
         self.send_queue = Queue()
         thread = threading.Thread(target=self.receive)
         thread.daemon = True
@@ -111,17 +122,45 @@ class LLAPDaemon(object):
         thread.start()
 
 
-    def send(self, message):
-        self.send_queue.put(message)
+    def send(self, device, message):
+        self.send_queue.put({'device': device, 'message': message, 'time': time.time() * 1000})
 
     def __send__(self):
+        def is_enough_time_passed_for_message(msg):
+            message_time = msg['time']
+            device = msg['device']
+            device_time = message_time
+            if device in self.inwaiting_times:
+                device_time = self.inwaiting_times[device]
+            device_time = max(message_time, device_time)
+            current_time = time.time() * 1000
+            return current_time - device_time > 100
+
+
         while True:
-            message = self.send_queue.get()
+            msg = self.send_queue.get()
             try:
-                __logger__.debug("Sending: " + message)
-                self.ser.write(message)
-                # Wait some time, since command that go too quick seem to be a problem
-                time.sleep(0.05)
+                device = msg['device']
+                message = msg['message']
+                if device in self.inwaiting and msg is not self.inwaiting[device]:
+                    self.send_queue.put(msg)
+                elif is_enough_time_passed_for_message(msg):
+                    if device in self.inwaiting:
+                        del self.inwaiting[device]
+                    __logger__.debug("Sending: %s", msg)
+                    llap_message = ('a' + device + message).ljust(12, '-')
+                    self.ser.write(llap_message)
+                    self.inwaiting_times[device] = time.time() * 1000
+                    if self.debug:
+                        # Nice thing about tmp files is that Python will clean them on
+                        # system close
+                        self.debug_file.write(llap_message)
+                        self.debug_file.flush()
+                    # Wait some time, since command that go too quick seem to be a problem
+                else:
+                    __logger__.debug("Waiting: %s", msg)
+                    self.inwaiting[device] = msg
+                    self.send_queue.put(msg)
             except:
                 __logger__.exception(sys.exc_info()[0])
                 __logger__.warn("exception happened")
