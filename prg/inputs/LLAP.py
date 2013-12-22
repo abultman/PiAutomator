@@ -76,14 +76,18 @@ class LLAPCommand(object):
 
     def retry_if_needed(self):
         current_time = time.time() * 1000
-        if self.retry_times >= 5:
+
+        def timeout():
+            return current_time - self.sent_time > 200
+
+        if self.retry_times >= 5 and timeout():
             return False
         # wait for 200 millis
-        elif self.sent_time > 0 and current_time - self.sent_time > 200:
+        elif self.sent_time > 0 and timeout():
+            __logger__.info("Retrying %s %s", self.device_id, self.message)
             self.apply()
             self.retry_times += 1
-        else:
-            return True
+        return True
 
 class LLAP(AnInput):
     def __init__(self,  name, context, settings):
@@ -288,4 +292,4 @@ class LLAPDaemon(object):
         while True:
             for sensor in lllap_sensors.values():
                 sensor.retry_any_waiting_commands()
-            time.sleep(0.2)
+            time.sleep(1)
