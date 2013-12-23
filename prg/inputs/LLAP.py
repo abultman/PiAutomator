@@ -232,7 +232,7 @@ class LLAPDaemon(object):
                     if self.debug:
                         # Nice thing about tmp files is that Python will clean them on
                         # system close
-                        self.debug_file.write(llap_message)
+                        self.debug_file.write(">" + llap_message)
                         self.debug_file.flush()
                     # Wait some time, since command that go too quick seem to be a problem
                 else:
