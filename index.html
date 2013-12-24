@@ -1,0 +1,360 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Piautomator by abultman</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Piautomator</h1>
+        <p class="header">Simple Python lib that allows you to read values from sensors etc. on the Pi and then trigger receivers into certain states. Or any other automation.</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/abultman/PiAutomator/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/abultman/PiAutomator/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/abultman/PiAutomator">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/abultman">abultman</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a name="piautomator" class="anchor" href="#piautomator"><span class="octicon octicon-link"></span></a>PiAutomator</h1>
+
+<p>Simple Python lib that allows you to read values from sensors etc. on the Pi and then trigger receivers into certain states.</p>
+
+<p>Currently using this with a DHT22 sensor wired and a wired switch (KlikAanKlikUit) 
+to switch the fan when it gets too humid in the bathroom</p>
+
+<p>The setup is created in such a way that it should be easy enough to add more and different types of sensors and the
+types of receivers should also be able to get a bit more variation, although I'll probably stick with kaku for now.</p>
+
+<h2>
+<a name="required-libs" class="anchor" href="#required-libs"><span class="octicon octicon-link"></span></a>Required libs</h2>
+
+<p>A couple of python modules were used in the writing of this software. You should install then too:</p>
+
+<ul>
+<li>PyYAML</li>
+<li>pyparsing</li>
+<li>schedule -&gt; Actually is included for now, but only until I get a pull request merged</li>
+<li>graphitesend -&gt; If you want to enable graphite data sending</li>
+<li>wiringpi2 -&gt; If you're using the direct KAKU controller</li>
+<li>pyserial -&gt; If you want to use the LLAP receivers</li>
+</ul><p>to get them all:</p>
+
+<pre><code>sudo pip install PyYAML pyparsing schedule graphitesend  pyserial wiringpi2
+</code></pre>
+
+<p>Note that wiringpi only works on raspberry pi and is only needed for pin access. So if you have no pins, don't
+install wiringpi2:</p>
+
+<pre><code>sudo pip install PyYAML pyparsing schedule graphitesend  pyserial
+</code></pre>
+
+<h2>
+<a name="rules" class="anchor" href="#rules"><span class="octicon octicon-link"></span></a>Rules</h2>
+
+<p>Rules are used to make stuff happen in PiAutomator. There are two kinds of rules currently supported</p>
+
+<ol>
+<li>Schedule rules</li>
+<li>Conditional rules</li>
+</ol><h3>
+<a name="schedule-rules" class="anchor" href="#schedule-rules"><span class="octicon octicon-link"></span></a>Schedule rules</h3>
+
+<p>Schedule rules make something happen on set times during the day/week/hour</p>
+
+<p>basic format is:</p>
+
+<pre><code>every &lt;schedule&gt; &lt;action&gt;
+</code></pre>
+
+<h4>
+<a name="singular-rules" class="anchor" href="#singular-rules"><span class="octicon octicon-link"></span></a>singular rules:</h4>
+
+<pre><code>every &lt;unit&gt; &lt;at optional_time&gt; &lt;verb&gt; &lt;receiver&gt; &lt;state&gt;
+
+unit: day hour second week sunday weekday weekendday
+optional_time: of the format 'at 10:30' or 'at :30' , only works for day/hour/weekday/weekenday
+verb: any word that makes your text look nice :) -&gt; In the future some receivers might use this for more specificity
+receiver: The name of any receiver to handle the scheduled event
+state: The state to send to the receiver
+
+Note that weekday matches on monday, tuesday, wednesday, thursday, friday so a rule with this unit will fire on all
+those days
+Note that weekendday matches on satureday, sunday so a rule with this unit will fire on all
+those days
+
+Example:
+every day turn lights on
+every weekday at 10:30 turn lights on
+</code></pre>
+
+<h4>
+<a name="plural-rules" class="anchor" href="#plural-rules"><span class="octicon octicon-link"></span></a>plural rules</h4>
+
+<p>like singular but with:</p>
+
+<pre><code>every &lt;interval&gt; &lt;unit&gt; &lt;at optional_time&gt; &lt;verb&gt; &lt;receiver&gt; &lt;state&gt;
+
+interval: the interval to set
+unit: days hours seconds weeks
+
+Example
+every 2 days turn lights on
+every 2 days at 10:30 turn lights on
+</code></pre>
+
+<h4>
+<a name="day-rules" class="anchor" href="#day-rules"><span class="octicon octicon-link"></span></a>day rules</h4>
+
+<p>allows firing on specific days of the week</p>
+
+<pre><code>every &lt;day(s)&gt; &lt;at optional_time&gt; &lt;verb&gt; &lt;receiver&gt; &lt;state&gt;
+
+day(s): monday tuesday wednesday thursday friday saturday sunday
+        -&gt; Allows for multiple days by connecting them with the 'and' keyword
+
+example
+every monday turn lights on
+every monday at 10:30 turn lights on
+every monday and tuesday and friday at 10:30 turn lights on
+</code></pre>
+
+<h4>
+<a name="actions" class="anchor" href="#actions"><span class="octicon octicon-link"></span></a>actions</h4>
+
+<p>In the examples above only a single action was performed every time a schedule matched. You can
+execute multiple actions on a single schedule simply by defining more then one separated by 'and'</p>
+
+<pre><code>every day at 8:00 turn lights on and send notification "wake up!"
+</code></pre>
+
+<h3>
+<a name="conditional-rules" class="anchor" href="#conditional-rules"><span class="octicon octicon-link"></span></a>Conditional rules</h3>
+
+<p>Conditional rules fire based on certain conditions being met. All conditional rules operate on the AutomationContext
+which stores information about input states, rule states and receiver states. A rule condition can operate on all these.
+when matching, a conditional rule will fire the associated actions (same format as with scheduled rules) once. As long
+as the rule matched and keeps matching, it will only fire once (to prevent event storms)</p>
+
+<p>Format:</p>
+
+<pre><code>when &lt;value_path&gt; is &lt;operator&gt; &lt;value&gt; then &lt;action&gt;
+
+value_path: a path to a value in the context
+operator: an operator on the value. Currently supported less than, greater than, equal to
+value: the value to compare. Casting may occur depending on the operator used
+
+example
+when bathroom.humidity is greater than 60 then turn homefan on
+</code></pre>
+
+<h4>
+<a name="value-paths" class="anchor" href="#value-paths"><span class="octicon octicon-link"></span></a>value paths</h4>
+
+<p>Every input, rule and receiver in PiAutomator reports to the AutomationContext with values. If values change, a
+reevaluation of all conditional rules is triggered.</p>
+
+<p>value paths are nested name spaces with '.' separators. The context supports the following top level namespaces
+to make sure there are no collisions:</p>
+
+<ul>
+<li>input</li>
+<li>rule</li>
+<li>receiver</li>
+</ul><p>when writing a rule with a value path, the context will always first try to find the value using the exact supplied path
+when that cannot be found, it will try to find it in one of the predefined name spaces. You can look in to the dumped
+state from the program if you're unsure about the path.</p>
+
+<p>Example:</p>
+
+<pre><code>when bathroom.humidity is less than 50 then turn homefan off
+</code></pre>
+
+<p>In this case <em>bathroom.humidity</em> is the path. When the rule matches, it will first look in the context for the exact
+value, afterwards it will also look for <em>input.bathroom.humidity</em> and <em>rule.bathroom.humidity</em> etc. until it finds
+something or it's options are exhausted.</p>
+
+<h2>
+<a name="graphite" class="anchor" href="#graphite"><span class="octicon octicon-link"></span></a>Graphite</h2>
+
+<p>Automatically sends collected sensor data to Graphite so you can keep an eye on your data.
+I used <a href="https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphite.sh">https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphite.sh</a> to quickly get graphite on the pi.</p>
+
+<h2>
+<a name="general-concepts" class="anchor" href="#general-concepts"><span class="octicon octicon-link"></span></a>General Concepts</h2>
+
+<p>Configures a set of rules that</p>
+
+<ol>
+<li>Take input from configured  receivers (like the DHT22)</li>
+<li>Take a fixed schedule</li>
+</ol><p>and then execute (a series of) actions when input meets criteria.</p>
+
+<p>An example of a rule could be:</p>
+
+<ul>
+<li>when kitchen.temperature is greater than 25 then turn airconditioning on</li>
+<li>every day at 20:00 turn outsidelights on</li>
+</ul><p>take a look at the included config-example.yaml on what is possible.</p>
+
+<p>To get started:</p>
+
+<ol>
+<li>Install the required python libs.</li>
+<li>Create a config.yaml in conf/ with your settings</li>
+<li>run bin/bin/start-automator.py</li>
+</ol><h2>
+<a name="pilight" class="anchor" href="#pilight"><span class="octicon octicon-link"></span></a>pilight</h2>
+
+<p>PiAutomator supports adding pilight as both inputs and receivers. pilight can read the DHT22 all by itself, should you not want to, you can config it directly.</p>
+
+<p>example of pilight output:</p>
+
+<pre><code>  outsidelights:
+    translate-up-down: true # If using old style KAKY will translate rule action on/off to receiver up/down
+    type: PiLight
+    location: frontgarden  # Location from pilight config
+    device: lights  # device from pilight config
+</code></pre>
+
+<p>example of specific pilight input:</p>
+
+<pre><code>   bathroom:
+     type: PiLight
+     location: bathroom  # location from pilight config
+     device: h_t_sensor  # device from pilight config
+     scale: 0.1  # Optional scale you can add to receivers returning numbers (works for all receivers)
+
+   # corresponding rule
+   - when bathroom.humidity is greater than 70 turn homefan on
+</code></pre>
+
+<p>you van also add all pilight input to the mix:</p>
+
+<pre><code>   all-pilight:
+     type: PiLight
+     location: all
+     device: all
+
+   # corresponding rule
+   # - when pilight.&lt;location&gt;.&lt;device&gt;.&lt;value&gt; is equal to on
+   - when pilight.livingroom.christmastree.state is equal to 'up' then turn music on
+</code></pre>
+
+<p>Doing this will make all pilight values available for your rules to play with. Specific inputs take precedence over the all, so you can still have individual ones where you think it needed.</p>
+
+<p>If you're unsure about what keys to use, the automator dumps it's state when you stop it. So have a look at the input section there.</p>
+
+<p><a href="http://www.pilight.org/">http://www.pilight.org/</a></p>
+
+<h2>
+<a name="llap" class="anchor" href="#llap"><span class="octicon octicon-link"></span></a>LLAP</h2>
+
+<p>PiAutomator support reading (and only readying currently) sensor data from LLAP compatible serial input devices. This is mainly usefull for remote sensors setting up a wireless network.</p>
+
+<ul>
+<li>Basically, setup your Pi with a wireless receiver of somekind, I use the slice of radio (<a href="http://shop.ciseco.co.uk/slice-of-radio-wireless-rf-transciever-for-the-raspberry-pi/">http://shop.ciseco.co.uk/slice-of-radio-wireless-rf-transciever-for-the-raspberry-pi/</a>)</li>
+<li>Use other devices to transmit on the correct frequency (for instance using something like <a href="http://shop.ciseco.co.uk/xrf-wireless-rf-radio-uart-rs232-serial-data-module-xbee-shape-arduino-pic-etc/">http://shop.ciseco.co.uk/xrf-wireless-rf-radio-uart-rs232-serial-data-module-xbee-shape-arduino-pic-etc/</a>)</li>
+</ul><p>And set the remote up to send LLAP compatible data.</p>
+
+<ul>
+<li><a href="http://openmicros.org/index.php/articles/85-llap-lightweight-local-automation-protocol/101-llap-starter">http://openmicros.org/index.php/articles/85-llap-lightweight-local-automation-protocol/101-llap-starter</a></li>
+<li><a href="http://openmicros.org/index.php/articles/85-llap-lightweight-local-automation-protocol/112-llap">http://openmicros.org/index.php/articles/85-llap-lightweight-local-automation-protocol/112-llap</a></li>
+<li>Example: <a href="http://www.seanlandsman.com/2013/02/the-raspberry-pi-and-wireless-rf-xrf.html">http://www.seanlandsman.com/2013/02/the-raspberry-pi-and-wireless-rf-xrf.html</a>
+</li>
+</ul><p>then add a LLAP receiver per device you have installed:</p>
+
+<pre><code>  outside1:
+    type: LLAP
+    device-id: AA
+</code></pre>
+
+<p>the receiver will automatically recognize and publish values for your rules to use. Currently supported are the following LLAP standard metrics:</p>
+
+<pre><code>    LLAP Command        Reported as         Data type/value
+    BATTLOW             lowbattery          True             -&gt; Turns on low battery state
+    BATT                batterylevel        float
+    STARTED             lowbattery          False            -&gt; Low battery is turned off when STARTED is received. If there is still lowbattery, you will get the BATTLOW again
+    LVAL                lightlevel          float
+    TEMP                temperature         float
+    TMPA                temperature         float
+    ANA                 analog              int
+    BUTTON              button              str              -&gt; Unsure about this one, I don't have it and the docs are a bit unclear to me.
+</code></pre>
+
+<p>So for instance based on above config an appropriate rule would be:</p>
+
+<pre><code>  - when outside1.lightlevel is less than 40 then tun outsidelights on
+</code></pre>
+
+<h2>
+<a name="dht22---direct" class="anchor" href="#dht22---direct"><span class="octicon octicon-link"></span></a>DHT22 - Direct</h2>
+
+<p><em>NOTE:</em> You don't have to do anything here if you're not using the direct access DHT sensor receiver</p>
+
+<p>install bcm2835 library: <a href="http://www.airspayce.com/mikem/bcm2835/">http://www.airspayce.com/mikem/bcm2835/</a></p>
+
+<p>To read the DHT22 sensor directly, this wonderfull piece of software was used:</p>
+
+<p><a href="https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/tree/master/Adafruit_DHT_Driver_Python">https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/tree/master/Adafruit_DHT_Driver_Python</a></p>
+
+<p>the python lib is included in this release</p>
+
+<p>Please note the following notice about that library:</p>
+
+<p>Copyright (c) 2012-2013 Limor Fried, Kevin Townsend and Mikey Sklar for Adafruit Industries. All rights reserved.</p>
+
+<p>Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. * Neither the name of the nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.</p>
+
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+
+<h2>
+<a name="stubs" class="anchor" href="#stubs"><span class="octicon octicon-link"></span></a>Stubs</h2>
+
+<p>The project contains a couple of stubs to allow for development/testing on other machines than the pi</p>
+
+<p>Specifically:</p>
+
+<ul>
+<li>/stubs/wiringpi2.py
+basically noops all used wiringpi2 methods. Needed in order to run the python version of the KlikAanKlikUitReceivef</li>
+<li>/stubs/dhtreader.py
+For the DHT22 input. Returns random numbers between 10 and 25 for temperature and random numbers between 45 and 95 for humidity (full ints)</li>
+</ul><h2>
+<a name="legal" class="anchor" href="#legal"><span class="octicon octicon-link"></span></a>Legal</h2>
+
+<p>Distrubuted under Apache 2.0 license (see LICENSE.txt)</p>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		          <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-46698701-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
