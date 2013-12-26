@@ -138,13 +138,9 @@ class Onkyo(AnInput):
         bmessage = bytearray("!1" + message, "ascii")
         bmessage.append(0x0d)
         bmessage.append(0x0a)
-        size = struct.pack('>I', len(bmessage))
         header = bytearray("ISCP", "ascii")
-        header.append(0)
-        header.append(0)
-        header.append(0)
-        header.append(16)
-        header.extend(size)
+        header.extend(struct.pack('>I', 16))
+        header.extend(struct.pack('>I', len(bmessage)))
         header.append(1)
         header.append(0)
         header.append(0)
@@ -215,7 +211,6 @@ class Onkyo(AnInput):
         else:
             self.publish({cmd: value})
             __logger__.info("%s: %s", cmd, value)
-
 
     def __process__(self, msg):
         try:
