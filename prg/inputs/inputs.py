@@ -5,6 +5,7 @@ class AnInput(object):
     def __init__(self, name, context, settings):
         """
         @type context: context.AutomationContext
+        @type settings: config.LocalSettings
         """
         self.context = context
         self.name = name
@@ -28,15 +29,15 @@ class AnInput(object):
             self.context.publishInputValues(self.name, value)
 
 class PollingInput(AnInput):
-    def __init__(self, name, settings, g):
-        super(PollingInput, self).__init__(name, settings, g)
+    def __init__(self, name, context, settings):
+        super(PollingInput, self).__init__(name, context, settings)
 
     def refresh(self):
         logging.debug("refreshing %s" % self.name)
         value = self._read()
         if value:
             self.publish(value)
-            logging.info("refreshed %s: %s" % (self.name, value))
+            logging.debug("refreshed %s: %s" % (self.name, value))
 
     def _read(self):
         return None
