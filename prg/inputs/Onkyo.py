@@ -117,7 +117,7 @@ class Onkyo(AnInput):
                 self.__read_initial_state()
                 self.__read_while_open()
             else:
-                __logger__.debub("Down")
+                __logger__.debug("Down")
                 self.__publish__("PWR", "00")
             __logger__.debug("Down")
             time.sleep(1)
