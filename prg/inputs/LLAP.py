@@ -12,6 +12,9 @@ import sys
 import time
 from inputs import AnInput
 
+def millis():
+    return time.time() * 1000
+
 
 def _true(value = None):
     return True
@@ -62,7 +65,7 @@ class LLAPCommand(object):
     def apply(self):
         __logger__.debug("Sending %s %s", self.device_id, self.message)
         llap_receiver.send(self.device_id, self.message)
-        self.sent_time = time.time() * 1000
+        self.sent_time = millis()
         return not self.wait_for_answer
 
     def has_received_reply(self, sentcommand):
@@ -75,7 +78,7 @@ class LLAPCommand(object):
         return False
 
     def retry_if_needed(self):
-        current_time = time.time() * 1000
+        current_time = millis()
 
         def timeout():
             return current_time - self.sent_time > 200
@@ -89,16 +92,21 @@ class LLAPCommand(object):
             self.retry_times += 1
         return True
 
+
+
 class LLAP(AnInput):
+
     def __init__(self,  name, context, settings):
         super(LLAP, self).__init__(name, context, settings)
         self.device_id = settings['device-id']
         self.values = None
         self.cycle = settings.getsetting('cycle', False)
-        self.cycle_period = settings.getsetting('cycle-period', '005S')
+        self.cycle_period = settings.getsetting('cycle-period', 'S')
+        self.cycle_time = settings.getsetting('cycle-time', '5')
         self.read_command = settings.getsetting('read-command', 'TEMP')
         self.command_queue = []
         self.inflight = False
+        self.last_active_time = millis()
         lllap_sensors[self.device_id] = self
 
     def cycle_hello(self, sentcommand):
@@ -111,7 +119,7 @@ class LLAP(AnInput):
                         self.send("ACK", False)
                     self.send(self.read_command)
                     self.send("BATT")
-                    self.send("SLEEP" + self.cycle_period)
+                    self.send("SLEEP" + ("%d%s" % (self.cycle_time, self.cycle_period)).rjust(4, '0'))
 
     def process_incomming(self, sentcommand):
         for command in sorted(llap_commands, key=lambda x: len(x), reverse=True):
@@ -123,6 +131,7 @@ class LLAP(AnInput):
                 break
 
     def process_queue(self, sentcommand = "YEAHWHATEVER"):
+        self.last_active_time = millis()
         if self.inflight and self.i_received_reply(sentcommand):
             self.command_queue.pop(0)
             self.inflight = False
@@ -140,12 +149,15 @@ class LLAP(AnInput):
     def send(self, message, wait_for_it = True):
         self.command_queue.append(LLAPCommand(self.device_id, message, wait_for_it))
 
-    def start(self):
-        super(LLAP, self).start()
+    def say_hello(self):
         if self.cycle:
             # Say hello, should get a response from the other end
             self.send("HELLO")
             self.process_queue()
+
+    def start(self):
+        super(LLAP, self).start()
+        self.say_hello()
 
     def send_what_you_can(self):
         while self.send_one():
@@ -172,7 +184,25 @@ class LLAP(AnInput):
                 self.command_queue.pop(0)
                 self.inflight = False
                 self.send_what_you_can()
+        elif self.cycle and self.i_been_waiting_long_time():
+            self.inflight = False
+            self.say_hello()
 
+    def i_been_waiting_long_time(self):
+        factor = 0
+        if self.cycle_period == 'S':
+            factor = 1000
+        if self.cycle_period == 'M':
+            factor = 60 * 1000
+        if self.cycle_period == 'H':
+            factor = 60 * 60 * 1000
+        if self.cycle_period == 'D':
+            factor = 24 * 60 * 60 * 1000
+
+        check_interval = self.cycle_time * factor + 15000
+        if millis() > (self.last_active_time + check_interval):
+            __logger__.info("Haven't heard from %s for at least %d millis, saying hello", self.device_id, check_interval)
+            self.say_hello()
 
 class LLAPDaemon(object):
     def __init__(self, device, debug):
@@ -205,7 +235,7 @@ class LLAPDaemon(object):
             {
                 'device': device,
                 'message': message,
-                'time': time.time() * 1000
+                'time': millis()
             }
         )
 
@@ -217,7 +247,7 @@ class LLAPDaemon(object):
             if device in self.inwaiting_times:
                 device_time = self.inwaiting_times[device]
             device_time = max(message_time, device_time)
-            current_time = time.time() * 1000
+            current_time = millis()
             return current_time - device_time > 3
 
         while True:
@@ -233,7 +263,7 @@ class LLAPDaemon(object):
                     __logger__.debug("Sending: %s", msg)
                     llap_message = ('a' + device + message).ljust(12, '-')
                     self.ser.write(llap_message)
-                    self.inwaiting_times[device] = time.time() * 1000
+                    self.inwaiting_times[device] = millis()
                     if self.debug:
                         # Nice thing about tmp files is that Python will clean them on
                         # system close
