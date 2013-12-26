@@ -113,13 +113,13 @@ class Onkyo(AnInput):
         while True:
             self.__get_socket__()
             if self.s:
-                __logger__.info("Up")
+                __logger__.debug("Up")
                 self.__read_initial_state()
                 self.__read_while_open()
             else:
-                __logger__.info("Down")
+                __logger__.debub("Down")
                 self.__publish__("PWR", "00")
-            __logger__.info("Down")
+            __logger__.debug("Down")
             time.sleep(1)
 
     def __get_socket__(self):
@@ -211,7 +211,7 @@ class Onkyo(AnInput):
             cmd_ = onkyo_commands[cmd]
             self.publish({cmd_['name']: cmd_['converter'].to(value)})
             self.publish({cmd_['name']+"_raw": value})
-            __logger__.info("%s: %s", cmd_['name'], cmd_['converter'].to(value))
+            __logger__.debug("%s: %s", cmd_['name'], cmd_['converter'].to(value))
         else:
             self.publish({cmd: value})
             __logger__.info("%s: %s", cmd, value)
