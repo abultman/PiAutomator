@@ -106,6 +106,9 @@ class LLAP(AnInput):
             for command in llap_hello_cmds:
                 if sentcommand.startswith(command):
                     self.command_queue = []
+                    self.inflight = False
+                    if (sentcommand.startswith('STARTED')):
+                        self.send("ACK")
                     self.send(self.read_command)
                     self.send("BATT")
                     self.send("SLEEP" + self.cycle_period)
