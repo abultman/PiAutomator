@@ -211,7 +211,11 @@ class Onkyo(AnInput):
             cmd_ = onkyo_commands[cmd]
             self.publish({cmd_['name']: cmd_['converter'].to(value)})
             self.publish({cmd_['name']+"_raw": value})
-            __logger__.info(cmd_['name'] + "  " + str(cmd_['converter'].to(value)))
+            __logger__.info("%s: %s", cmd_['name'], cmd_['converter'].to(value))
+        else:
+            self.publish({cmd: value})
+            __logger__.info("%s: %s", cmd, value)
+
 
     def __process__(self, msg):
         try:
