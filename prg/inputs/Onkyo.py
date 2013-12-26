@@ -163,10 +163,11 @@ class Onkyo(AnInput):
 
     def __read_while_open(self):
         open = True
+        retry_count = 0
 
         __logger__.info("Connected, reading while open")
 
-        while open:
+        while open and self.s is not None:
             try:
                 received = self.s.recv(1024)
                 if received == '':
@@ -175,9 +176,12 @@ class Onkyo(AnInput):
                     self.buffer += received
                     self.__find_and_process__()
             except socket.timeout:
-                pass
+                retry_count += 1
+                if retry_count == 20:
+                    self.__read_initial_state()
             except Exception, exception:
                 __logger__.exception(exception)
+                self.s.close()
                 open = False
         __logger__.info("connection closed")
 
