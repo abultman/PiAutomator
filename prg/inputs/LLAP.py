@@ -108,7 +108,7 @@ class LLAP(AnInput):
                     self.command_queue = []
                     self.inflight = False
                     if (sentcommand.startswith('STARTED')):
-                        self.send("ACK")
+                        self.send("ACK", False)
                     self.send(self.read_command)
                     self.send("BATT")
                     self.send("SLEEP" + self.cycle_period)
@@ -144,7 +144,7 @@ class LLAP(AnInput):
         super(LLAP, self).start()
         if self.cycle:
             # Say hello, should get a response from the other end
-            self.send("HELLO", False)
+            self.send("HELLO")
             self.process_queue()
 
     def send_what_you_can(self):
@@ -170,6 +170,8 @@ class LLAP(AnInput):
             if not command.retry_if_needed():
                 __logger__.info("LLAP sensor not responding for 5 times. %s %s, skipping", command.device_id, command.message)
                 self.command_queue.pop(0)
+                self.inflight = False
+                self.send_what_you_can()
 
 
 class LLAPDaemon(object):
@@ -294,5 +296,9 @@ class LLAPDaemon(object):
     def retry_commands(self):
         while True:
             for sensor in lllap_sensors.values():
-                sensor.retry_any_waiting_commands()
+                try:
+                    sensor.retry_any_waiting_commands()
+                except Exception, e:
+                    __logger__.error("Exception during retries")
+                    __logger__.exception(e)
             time.sleep(1)
