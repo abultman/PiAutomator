@@ -1,3 +1,5 @@
+http://pi-automator.net/
+
 PiAutomator
 ===========
 
@@ -8,6 +10,22 @@ to switch the fan when it gets too humid in the bathroom
 
 The setup is created in such a way that it should be easy enough to add more and different types of sensors and the
 types of receivers should also be able to get a bit more variation, although I'll probably stick with kaku for now.
+
+reads:
+
+- LLAP sensors
+- pilight events
+- DHT22
+- Onkyo amps
+
+sends:
+
+- pilight events (turn on lights etc)
+- old protocol klik aan klik uit
+- Prowl (ios notifs)
+- Any cmd line
+
+Open to suggestions :)
 
 Required libs
 -------------
@@ -148,7 +166,6 @@ when bathroom.humidity is less than 50 then turn homefan off
 In this case _bathroom.humidity_ is the path. When the rule matches, it will first look in the context for the exact
 value, afterwards it will also look for _input.bathroom.humidity_ and _rule.bathroom.humidity_ etc. until it finds
 something or it's options are exhausted.
-
 
 Graphite
 --------
