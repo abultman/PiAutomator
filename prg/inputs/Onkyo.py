@@ -159,7 +159,7 @@ class Onkyo(AnInput):
             for command in onkyo_commands:
                 self.__ask__(command)
         except:
-            self.s = None
+            self.__close_connection__()
 
     def __read_while_open(self):
         open = True
@@ -182,7 +182,7 @@ class Onkyo(AnInput):
                     self.__read_initial_state()
             except Exception, exception:
                 __logger__.exception(exception)
-                self.s.close()
+                self.__close_connection__()
                 open = False
         __logger__.info("connection closed")
 
@@ -207,12 +207,21 @@ class Onkyo(AnInput):
             __logger__.debug("dropping %s", self.buffer[0:6])
             self.buffer = self.buffer[6:]
 
+    def __close_connection__(self):
+        try:
+            self.s.close()
+        except:
+            pass
+        self.s = None
+
     def __publish__(self, cmd, value):
         if cmd in onkyo_commands.keys():
             cmd_ = onkyo_commands[cmd]
             self.publish({cmd_['name']: cmd_['converter'].to(value)})
             self.publish({cmd_['name']+"_raw": value})
             __logger__.debug("%s: %s", cmd_['name'], cmd_['converter'].to(value))
+            if cmd == 'PWR' and value == '00':
+                self.__close_connection__()
         else:
             self.publish({cmd: value})
             __logger__.info("%s: %s", cmd, value)
