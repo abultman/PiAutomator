@@ -61,6 +61,18 @@ class LLAPCommand(object):
         self.device_id = device_id
         self.sent_time = -1
         self.retry_times = 0
+        factor = 0
+        if self.cycle_period == 'S':
+            factor = 1000
+        if self.cycle_period == 'M':
+            factor = 60 * 1000
+        if self.cycle_period == 'H':
+            factor = 60 * 60 * 1000
+        if self.cycle_period == 'D':
+            factor = 24 * 60 * 60 * 1000
+
+        self.check_interval = self.cycle_time * factor + 15000
+
 
     def apply(self):
         __logger__.debug("Sending %s %s", self.device_id, self.message)
@@ -152,7 +164,8 @@ class LLAP(AnInput):
     def say_hello(self):
         if self.cycle:
             # Say hello, should get a response from the other end
-            self.send("HELLO")
+            # We don't care about the response though
+            self.send("HELLO", False)
             self.process_queue()
 
     def start(self):
@@ -185,24 +198,23 @@ class LLAP(AnInput):
                 self.inflight = False
                 self.send_what_you_can()
         elif self.cycle and self.i_been_waiting_long_time():
+            # when cycling, sometimes the sensor wont go to sleep,
+            # try to talk to it here again..
+            __logger__.info("Haven't heard from %s for at least %d millis, saying hello", self.device_id,
+                            self.check_interval)
+            self.inflight = False
+            self.say_hello()
+        elif self.cycle and self.i_been_waiting_for(2000):
+            # In case of long wait times, retry a bit sooner, can't hurt.
             self.inflight = False
             self.say_hello()
 
-    def i_been_waiting_long_time(self):
-        factor = 0
-        if self.cycle_period == 'S':
-            factor = 1000
-        if self.cycle_period == 'M':
-            factor = 60 * 1000
-        if self.cycle_period == 'H':
-            factor = 60 * 60 * 1000
-        if self.cycle_period == 'D':
-            factor = 24 * 60 * 60 * 1000
 
-        check_interval = self.cycle_time * factor + 15000
-        if millis() > (self.last_active_time + check_interval):
-            __logger__.info("Haven't heard from %s for at least %d millis, saying hello", self.device_id, check_interval)
-            self.say_hello()
+    def i_been_waiting_for(self, check_interval):
+        return millis() > (self.last_active_time + check_interval)
+
+    def i_been_waiting_long_time(self):
+        return self.i_been_waiting_for(self.check_interval)
 
 class LLAPDaemon(object):
     def __init__(self, device, debug):
