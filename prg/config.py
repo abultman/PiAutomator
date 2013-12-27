@@ -12,7 +12,7 @@ class AutomationConfig(object):
         try:
             return reduce(lambda d, k: d[k], mapList, self.yaml)
         except KeyError as e:
-            if default:
+            if default is not None:
                 return default
             else:
                 raise e
