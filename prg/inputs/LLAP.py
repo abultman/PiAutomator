@@ -103,7 +103,7 @@ class LLAP(AnInput):
         self.values = None
         self.cycle = settings.getsetting('cycle', False)
         self.cycle_period = settings.getsetting('cycle-period', 'S')
-        self.cycle_time = settings.getsetting('cycle-time', '5')
+        self.cycle_time = settings.getsetting('cycle-time', 5)
         self.read_command = settings.getsetting('read-command', 'TEMP')
         self.command_queue = []
         self.inflight = False
