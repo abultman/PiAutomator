@@ -126,8 +126,8 @@ class Onkyo(AnInput):
         if self.s == None:
             try:
                 self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.s.connect((self.settings.getsetting("ip"), self.settings.getsetting("port", 60128)))
                 self.s.settimeout(2)
+                self.s.connect((self.settings.getsetting("ip"), self.settings.getsetting("port", 60128)))
             except:
                 self.s = None
 
