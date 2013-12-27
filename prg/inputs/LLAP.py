@@ -51,7 +51,8 @@ def init(config):
 
     llap_receiver = LLAPDaemon(
         config.getSetting(['llap','device'], '/dev/ttyAMA0'),
-        config.getSetting(['llap','print-debug'], False)
+        config.getSetting(['llap','print-debug-receive'], False),
+        config.getSetting(['llap','print-debug-send'], False)
     )
 
 class LLAPCommand(object):
@@ -216,12 +217,13 @@ class LLAP(AnInput):
         return self.i_been_waiting_for(self.check_interval)
 
 class LLAPDaemon(object):
-    def __init__(self, device, debug):
+    def __init__(self, device, receive_debug, send_debug):
         self.p = re.compile('a[A-Z][A-Z][A-Z0-9.-]{9,}.*')
         self.ser = serial.Serial(device, 9600)
-        self.debug = debug
+        self.receive_debug = receive_debug
+        self.send_debug = send_debug
         self.current_buffer = ""
-        if (debug):
+        if receive_debug or send_debug:
             self.debug_file = tempfile.NamedTemporaryFile()
             __logger__.info("Debugging serial input to %s", self.debug_file.name)
             self.debug_file.write("----- Serial input debug file -----\n")
@@ -275,7 +277,7 @@ class LLAPDaemon(object):
                     llap_message = ('a' + device + message).ljust(12, '-')
                     self.ser.write(llap_message)
                     self.inwaiting_times[device] = millis()
-                    if self.debug:
+                    if self.send_debug:
                         # Nice thing about tmp files is that Python will clean them on
                         # system close
                         self.debug_file.write(">" + llap_message)
@@ -304,7 +306,7 @@ class LLAPDaemon(object):
 
     def __read__(self, size):
         result = self.ser.read(size)
-        if self.debug:
+        if self.receive_debug:
             # Nice thing about tmp files is that Python will clean them on
             # system close
             self.debug_file.write(result)
