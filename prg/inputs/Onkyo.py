@@ -178,6 +178,7 @@ class Onkyo(AnInput):
             except socket.timeout:
                 retry_count += 1
                 if retry_count == 20:
+                    retry_count = 0
                     self.__read_initial_state()
             except Exception, exception:
                 __logger__.exception(exception)
