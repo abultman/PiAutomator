@@ -61,17 +61,6 @@ class LLAPCommand(object):
         self.device_id = device_id
         self.sent_time = -1
         self.retry_times = 0
-        factor = 0
-        if self.cycle_period == 'S':
-            factor = 1000
-        if self.cycle_period == 'M':
-            factor = 60 * 1000
-        if self.cycle_period == 'H':
-            factor = 60 * 60 * 1000
-        if self.cycle_period == 'D':
-            factor = 24 * 60 * 60 * 1000
-
-        self.check_interval = self.cycle_time * factor + 15000
 
 
     def apply(self):
@@ -120,6 +109,16 @@ class LLAP(AnInput):
         self.inflight = False
         self.last_active_time = millis()
         lllap_sensors[self.device_id] = self
+        factor = 0
+        if self.cycle_period == 'S':
+            factor = 1000
+        if self.cycle_period == 'M':
+            factor = 60 * 1000
+        if self.cycle_period == 'H':
+            factor = 60 * 60 * 1000
+        if self.cycle_period == 'D':
+            factor = 24 * 60 * 60 * 1000
+        self.check_interval = self.cycle_time * factor + 15000
 
     def cycle_hello(self, sentcommand):
         if self.cycle:
