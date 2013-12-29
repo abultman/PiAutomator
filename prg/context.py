@@ -167,6 +167,7 @@ class AutomationContext(object):
 
     def __force_run__(self):
         self.trigger.put(True)
+        self.async_perform(self.save)
 
     def start(self):
         self.receivers.start()
@@ -197,10 +198,14 @@ class AutomationContext(object):
 
     def save(self):
         if self.config.getSetting(['automator', 'save-state'], True):
-            filename = "%s/conf/state.json" % self.config.get_basedir()
-            with open(filename, 'w') as outfile:
-                json.dump(self.values, outfile, indent=4)
-            __logger__.info("Stated saved")
+            __lock__.acquire()
+            try:
+                filename = "%s/conf/state.json" % self.config.get_basedir()
+                with open(filename, 'w') as outfile:
+                    json.dump(self.values, outfile, indent=4)
+                __logger__.debug("Stated saved")
+            finally:
+                __lock__.release()
 
     def load(self):
         if self.config.getSetting(['automator', 'save-state'], True):
