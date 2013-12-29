@@ -193,7 +193,7 @@ class LLAP(AnInput):
         if self.inflight and len(self.command_queue) > 0:
             command = self.command_queue[0]
             if not command.retry_if_needed():
-                __logger__.info("LLAP sensor not responding for 5 times. %s %s, skipping", command.device_id, command.message)
+                __logger__.debug("LLAP sensor not responding for 5 times. %s %s, skipping", command.device_id, command.message)
                 self.command_queue.pop(0)
                 self.inflight = False
                 self.send_what_you_can()
