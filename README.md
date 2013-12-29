@@ -1,11 +1,11 @@
 http://pi-automator.net/
 
-PiAutomator
+Pi-Automator
 ===========
 
 Simple Python lib that allows you to read values from sensors etc. on the Pi and then trigger receivers into certain states.
 
-Currently using this with a DHT22 sensor wired and a wired switch (KlikAanKlikUit) 
+Currently using this with a DHT22 sensor wired and a wired switch (KlikAanKlikUit)
 to switch the fan when it gets too humid in the bathroom
 
 The setup is created in such a way that it should be easy enough to add more and different types of sensors and the
@@ -26,6 +26,31 @@ sends:
 - Any cmd line
 
 Open to suggestions :)
+
+
+General Concepts
+----------------
+
+Configures a set of rules that
+
+1. Take input from configured  receivers (like the DHT22)
+2. Take a fixed schedule
+
+and then execute (a series of) actions when input meets criteria.
+
+An example of a rule could be:
+
+- when kitchen.temperature is greater than 25 then turn airconditioning on
+- every day at 20:00 turn outsidelights on
+
+take a look at the included config-example.yaml on what is possible.
+
+To get started:
+
+1. Install the required python libs.
+2. Create a config.yaml in conf/ with your settings -> [example](https://github.com/abultman/PiAutomator/blob/master/conf/config-example.yaml "example config")
+3. run bin/bin/start-automator.py
+
 
 Required libs
 -------------
@@ -172,30 +197,6 @@ Graphite
 Automatically sends collected sensor data to Graphite so you can keep an eye on your data.
 I used https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphite.sh to quickly get graphite on the pi.
 
-General Concepts
-----------------
-
-Configures a set of rules that
-
-1. Take input from configured  receivers (like the DHT22)
-2. Take a fixed schedule
-
-and then execute (a series of) actions when input meets criteria.
-
-An example of a rule could be:
-
-- when kitchen.temperature is greater than 25 then turn airconditioning on
-- every day at 20:00 turn outsidelights on
-
-take a look at the included config-example.yaml on what is possible.
-
-To get started:
-
-1. Install the required python libs.
-2. Create a config.yaml in conf/ with your settings
-3. run bin/bin/start-automator.py
-
-
 pilight
 -------
 PiAutomator supports adding pilight as both inputs and receivers. pilight can read the DHT22 all by itself, should you not want to, you can config it directly.
@@ -217,7 +218,7 @@ example of specific pilight input:
      location: bathroom  # location from pilight config
      device: h_t_sensor  # device from pilight config
      scale: 0.1  # Optional scale you can add to receivers returning numbers (works for all receivers)
-     
+
    # corresponding rule
    - when bathroom.humidity is greater than 70 turn homefan on
 ```
@@ -228,15 +229,27 @@ you van also add all pilight input to the mix:
      type: PiLight
      location: all
      device: all
-   
+
    # corresponding rule
    # - when pilight.<location>.<device>.<value> is equal to on
    - when pilight.livingroom.christmastree.state is equal to 'up' then turn music on
 ```
 
-Doing this will make all pilight values available for your rules to play with. Specific inputs take precedence over the all, so you can still have individual ones where you think it needed.
+Doing this will make all pilight values available for your rules to play with. Specific inputs take precedence over
+the 'all', so you can still have individual ones where you think it needed. Besides the nice mapping values that
+basically comes from the pilight config.json, pi-automator supports a raw mode. This raw mode take raw json from
+pilight that comes in and saves it into the values context.
+It looks like the raw values are a bit more sensitive in pilight, so especially for remote controls this looks easier.
+also, it doesn't to state checks, so you'll get the events regardless.
 
-If you're unsure about what keys to use, the automator dumps it's state when you stop it. So have a look at the input section there.
+example for a value that comes from a kaku remote:
+
+```
+ - always when pilight.raw.archtech_screens.11442262.0.state_int is equal to 1 then always turn christmastree on
+ - always when pilight.raw.archtech_screens.11442262.0.state_int is equal to 0 then always turn christmastree off
+```
+
+If you're unsure about what keys to use, the automator dumps it's state when you stop it in conf/state.json. So have a look at the input section there.
 
 http://www.pilight.org/
 
