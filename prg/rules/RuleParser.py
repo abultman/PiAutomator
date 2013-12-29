@@ -38,7 +38,7 @@ class RuleParser(object):
 
             action = Group(verb + receiver + state)
             actions = ZeroOrMore(action + _and) + action
-            return Group(actions).setResultsName("actions")
+            return Optional("always").setResultsName("always_fire_actions") + Group(actions).setResultsName("actions")
 
         actions = __actions()
 
@@ -54,7 +54,7 @@ class RuleParser(object):
             res = ZeroOrMore(condition + _and) + condition
             conditions = Group(res).setResultsName("conditions")
 
-            return when + conditions + then + actions
+            return Optional("always").setResultsName("always_fire_rule") + when + conditions + then + actions
 
         def schedule_rule():
             timeIndication = at + Combine(Optional(number) + colon + number).setResultsName("time")

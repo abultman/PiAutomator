@@ -105,7 +105,7 @@ class Onkyo(AnInput):
     def start(self):
         __logger__.info("Starting")
         super(Onkyo, self).start()
-        thread = threading.Thread(target=self.__read__)
+        thread = threading.Thread(target=self.__read__, name='onkyo-client')
         thread.daemon = True
         thread.start()
 

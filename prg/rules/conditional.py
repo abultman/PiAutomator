@@ -7,6 +7,7 @@ class Condition(object):
         self.input = data['input']
         self.operator = operators[self.data['operator']]
         self.value = self.data['value']
+        self.change_time = 0
 
     def matches(self, automation_context):
         """
@@ -14,6 +15,7 @@ class Condition(object):
         """
         sensorValue = automation_context.getValue(self.input)
         if sensorValue:
+            self.change_time = sensorValue.change_time
             return self.operator(sensorValue, self.data['value'])
         else:
             return False
@@ -31,10 +33,20 @@ class ConditionalRule(Rule):
         """
         super(ConditionalRule, self).__init__(rule_context, rule_state, data)
         self.conditions = [Condition(condition) for condition in data['conditions']]
+        self.always_fire = 'always_fire_rule' in data
 
     def matches(self):
         return all(condition.matches(self.rule_context.automation_context) for condition in self.conditions)
 
+    def should_rule_fire(self):
+        return super(ConditionalRule, self).should_rule_fire() or self.fire_always()
+
+    def max_change_time(self):
+        return max(condition.change_time for condition in self.conditions)
+
     def __str__(self):
         return "%s %s actions %s\nconditions %s" % (
         self.rule_state.rule_id, self.rule_state.rule_name, self.actions, self.conditions)
+
+    def fire_always(self):
+        return self.always_fire and self.max_change_time() > self.rule_state['fire_time']

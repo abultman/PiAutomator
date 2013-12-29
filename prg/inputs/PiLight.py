@@ -20,7 +20,7 @@ def init(config):
     receiver = PiLightDaemon(
         config.getSetting(['pilight', 'host'], '127.0.0.1'),
         config.getSetting(['pilight', 'port'], 5000))
-    pilightthread = threading.Thread(target=receiver.receive)
+    pilightthread = threading.Thread(target=receiver.receive, name='pilight-receiver')
     pilightthread.daemon = True
     pilightthread.start()
 

@@ -16,6 +16,7 @@ class TestRuleParser(TestCase):
     def test_parse_simple_conditional(self):
         parse = self.parser.parse("when input.metric is less than 10 then turn heat up", self.context)
         self.assertIsInstance(parse, ConditionalRule)
+        self.assertEqual(parse.always_fire, False)
 
     def test_parse_simple_conditional_identified_by(self):
         parse = self.parser.parse("when input.metric is less than 10 then turn heat up identified by my_name1-awesome",
@@ -46,9 +47,11 @@ class TestRuleParser(TestCase):
         self.assertEqual(len(parse.conditions), 2)
 
         self.assertEqual(len(parse.actions), 2)
+        self.assertEqual(parse.actions[0].always_fire, False)
         self.assertEqual(parse.actions[0].receiver, 'heat')
         self.assertEqual(parse.actions[0].state, 'up')
         self.assertEqual(parse.actions[0].verb, 'turn')
+        self.assertEqual(parse.actions[1].always_fire, False)
         self.assertEqual(parse.actions[1].receiver, 'echo')
         self.assertEqual(parse.actions[1].state, '2')
 
@@ -109,5 +112,13 @@ class TestRuleParser(TestCase):
         self.assertEqual(parse.scheduleStr[1], "schedule.every(1).thursday.at('12:30')")
         self.assertEqual(parse.scheduleStr[2], "schedule.every(1).sunday.at('12:30')")
 
+    def test_allows_always_prefix(self):
+        parse = self.parser.parse("always when my.input is equal to on then turn receiver on", self.context)
+        self.assertIsInstance(parse, ConditionalRule)
+        self.assertEqual(parse.always_fire, True)
 
-
+    def test_actions_allow_always_too(self):
+        parse = self.parser.parse("always when my.input is equal to on then always turn receiver on", self.context)
+        self.assertIsInstance(parse, ConditionalRule)
+        self.assertEqual(parse.always_fire, True)
+        self.assertEqual(parse.actions[0].always_fire, True)

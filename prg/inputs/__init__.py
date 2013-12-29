@@ -27,7 +27,7 @@ def __load_receiver__(elem, config):
 
 def init(automation_context):
     inputs = automation_context.config.inputs()
-    instantiatedInputs = Inputs()
+    instantiatedInputs = Inputs(automation_context)
     for name in inputs:
         my_class = __load_receiver__(inputs[name]['type'], automation_context.config)
         instantiatedInputs.addInput(my_class(name, automation_context, LocalSettings(inputs[name])))
@@ -39,9 +39,12 @@ class Inputs(object):
     """
     Simple parent wrapper for all Inputs that are defined
     """
-    def __init__(self):
+    def __init__(self, automation_context):
+        '''
+        @type automation_context: context.AutomationContext
+        '''
         self.inputs = {}
-        self.jobqueue = Queue.Queue()
+        self.automation_context = automation_context
 
 
     def addInput(self, input):
@@ -54,13 +57,9 @@ class Inputs(object):
         """
         Any input that has a refresh method (for instance subclasses of PollingInput, get refreshed at this point
         """
-        [self.jobqueue.put(input.refresh) for input in self.inputs.values() if hasattr(input, 'refresh')]
+        [self.automation_context.async_perform(input.refresh) for input in self.inputs.values() if hasattr(input, 'refresh')]
 
     def start(self):
-        worker_thread = threading.Thread(target=self.__worker_main__)
-        worker_thread.daemon = True
-        worker_thread.start()
-
         [input.start() for input in self.inputs.values()]
 
         self.refreshAll()
@@ -71,9 +70,6 @@ class Inputs(object):
         schedule.cancel_job(self.schedule)
 
         [input.stop() for input in self.inputs.values()]
-
-        while self.jobqueue.qsize() > 0:
-            time.sleep(0.01)
         __logger__.info("Inputs stopped")
 
     def __getitem__(self, key):

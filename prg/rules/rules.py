@@ -1,4 +1,5 @@
 import logging
+import time
 from actions import Action
 
 operators = {
@@ -27,7 +28,8 @@ class RuleState(object):
             "total_success_count": get_value("total_success_count"),
             "total_failed_count": get_value("total_failed_count"),
             "success_state": get_value("success_state"),
-            "failed_state": get_value("failed_state")
+            "failed_state": get_value("failed_state"),
+            "fire_time": get_value("fire_date")
         }
         self.rule_id = rule_id
         self.rule_name = rule_name
@@ -38,6 +40,7 @@ class RuleState(object):
             self.incr("total_success_count")
             self.data["success_state"] = 1
             self.reset("failed_state")
+        self.data['fire_time'] = time.time()
 
     def failed(self):
         if self.data["failed_state"] == 0:
@@ -66,7 +69,7 @@ class Rule(object):
         @type rule_context: RuleContext
         @type data: matplotlib.pyparsing.ParseResults
         """
-        self.actions = [Action(action) for action in data['actions']]
+        self.actions = [Action(action, 'always_fire_actions' in data) for action in data['actions']]
         self.override = "override" in data
         self.overrideOff = False
         if self.override and len(data["override"]) == 1:
@@ -76,17 +79,19 @@ class Rule(object):
         elif self.override:
             __logger__.info(
                 "rule '%s' has override configuration and will turn a possible override state on" % rule_state.rule_name)
-        self.rule_state = rule_state
+        self.   rule_state = rule_state
         self.rule_context = rule_context
+        self.always_fire = False
 
     def matches(self):
         return False
 
-    def performActions(self):
-        def should_rule_fire():
-            return self.rule_state['success_state'] == 0
+    def should_rule_fire(self):
+        return self.rule_state['success_state'] == 0
 
-        if should_rule_fire():
+    def performActions(self):
+
+        if self.should_rule_fire():
             [action.perform(self.rule_context, self.rule_state, self.override, self.overrideOff) for action in self.actions]
             self.rule_state.success()
             __logger__.debug('fired %s', self.rule_state.rule_name)
@@ -130,7 +135,6 @@ class RuleContext(object):
             for rule_id in rules_to_delete:
                 rule_values.pop(rule_id)
         __logger__.info("Rule context started")
-
 
     def stop(self):
         [rule.stop() for rule in self.rules.values()]

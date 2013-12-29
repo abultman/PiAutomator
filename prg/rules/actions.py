@@ -1,11 +1,12 @@
 import logging
 
 class Action(object):
-    def __init__(self, data):
+    def __init__(self, data, always_fire):
         self.receiver = data['receiver']
         self.state = data['state']
         self.verb = data['verb']
         self.data = data
+        self.always_fire = always_fire
 
     def perform(self, rule_context, rule_state, override=False, overrideOff=False):
         """
@@ -17,7 +18,7 @@ class Action(object):
                 receiver.setOverrideMode(False)
             elif override:
                 receiver.setOverrideMode(True)
-            receiver.do(self.verb, self.state, override)
+            receiver.do(self.verb, self.state, override, self.always_fire)
         except:
             logging.warning("Receiver with name '%s' is unknown, skipping this action" % self.receiver)
 

@@ -19,7 +19,7 @@ def init(config):
             __logger__.info(toexec)
             subprocess.call(toexec, shell=True)
 
-    worker_thread = threading.Thread(target=__worker_main__)
+    worker_thread = threading.Thread(target=__worker_main__, name='subprocess-command-executor')
     worker_thread.daemon = True
     worker_thread.start()
 

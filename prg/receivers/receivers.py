@@ -19,7 +19,7 @@ class Receiver(object):
         self.context = context
         self.started = False
 
-    def do(self, verb, incoming_state, override=False):
+    def do(self, verb, incoming_state, override=False, always_fire = False):
         if not self.started: return
 
         if (not self.any_state and incoming_state not in self.supported_states()):
@@ -27,7 +27,7 @@ class Receiver(object):
 
         if override or not self.overrideMode():
             state = self.get_state()
-            if not self.maintain_state or state != incoming_state or state == None:
+            if always_fire or not self.maintain_state or state != incoming_state or state == None:
                 self.perform_for_state(verb, incoming_state)
                 __logger__.info("%s %s %s" % (verb, self.name, incoming_state))
                 self.set_state(incoming_state)

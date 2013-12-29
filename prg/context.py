@@ -13,7 +13,7 @@ __lock__ = threading.Lock()
 
 class AutomationContext(object):
     def __start_publish_queue__(self):
-        thread = threading.Thread(target=self.__publish_values__)
+        thread = threading.Thread(target=self.__publish_values__, name='publish-values')
         thread.daemon = True
         thread.start()
         self.__publish_thread__ = thread
@@ -21,11 +21,11 @@ class AutomationContext(object):
 
     def __start_local_threads(self):
         self.__start_publish_queue__()
-        thread = threading.Thread(target=self.__rule_eval__)
+        thread = threading.Thread(target=self.__rule_eval__, name='rule-eval')
         thread.daemon = True
         thread.start()
         self.__rule_eval_thread__ = thread
-        thread = threading.Thread(target=self.__perform_actions__)
+        thread = threading.Thread(target=self.__perform_actions__, name='job-function-executor')
         thread.daemon = True
         thread.start()
         self.__action_thread__ = thread
@@ -60,6 +60,9 @@ class AutomationContext(object):
                 return True
             except ValueError:
                 return False
+            except:
+                print "FML"
+                print s
 
         if isinstance(values, dict):
             for key in values:
@@ -78,16 +81,21 @@ class AutomationContext(object):
             path = elem[0]
             values = elem[1]
             changed = elem[2]
+            change_time = time.time()
             state = self.values
             for elem in path.split("."):
                 if not elem in state:
                     state[elem] = {}
                 state = state[elem]
             for key in values:
-                if not key in state or not state[key] == values[key]:
-                    state[key] = values[key]
+                if not key in state or not state[key] == values[key] or changed:
+                    assignable = values[key]
+                    if isinstance(assignable, Value):
+                        assignable = assignable.value
+                    state[key] = assignable
+                    state[key + "_change_time"] = change_time
                     __logger__.debug("setting %s %s to %s", path, key, state[key])
-                    if changed and self.trigger.qsize() == 0:
+                    if self.trigger.qsize() == 0:
                         self.trigger.put(True)
             self.publish_queue.task_done()
 
@@ -121,7 +129,7 @@ class AutomationContext(object):
         self._publishPrefixed('input', path, values)
 
     def publishRuleValues(self, path, values):
-        self._publishPrefixed('rule', path, values)
+        self._publishPrefixed('rule', path, values, False)
 
     def publishReceiverValues(self, path, values):
         self._publishPrefixed('receiver', path, values)
@@ -133,7 +141,8 @@ class AutomationContext(object):
         for prefix in self.prefixes.values():
             value = self._getValue(prefix + path)
             if not value == None:
-                return value
+                change_time = self._getValue(prefix + path + "_change_time")
+                return Value(value, change_time)
         return None
 
     def getInputValue(self, path):
@@ -182,6 +191,9 @@ class AutomationContext(object):
         while self.publish_queue.qsize() >0:
             time.sleep(0.01)
 
+        while self.job_queue.qsize() >0:
+            time.sleep(0.01)
+
         self.receivers.stop()
         self.save()
         __logger__.info("Automation stopped")
@@ -213,3 +225,49 @@ class AutomationContext(object):
             __logger__.info("Starting with a clean state")
         return {}
 
+class Value(object):
+    def __init__(self, value, change_time):
+        self.value = value
+        self.change_time = change_time
+
+    def __eq__(self, other):
+        return self.value == other
+
+    def __ne__(self, other):
+        return self.value != (other)
+
+    def __abs__(self):
+        return abs(self.value)
+
+    def __cmp__(self, other):
+        return cmp(self.value, other)
+
+    def __and__(self, other):
+        self.value.__and__(other)
+
+    def __iter__(self):
+        return self.value.__iter__()
+
+    def __getitem__(self, key):
+        return self.value.__getitem__(key)
+
+    def __int__(self):
+        return int(self.value)
+
+    def __float__(self):
+        return float(self.value)
+
+    def __str__(self):
+        return str(self.value)
+
+    def __add__(self, other):
+        return self.value + other
+
+    def __mul__(self, other):
+        return self.value * other
+
+    def __div__(self, other):
+        return self.value / other
+
+    def pop(self, item, default=None):
+        return self.value.pop(item, default)

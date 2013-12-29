@@ -232,13 +232,13 @@ class LLAPDaemon(object):
         self.inwaiting = {}
         self.inwaiting_times = {}
         self.send_queue = Queue()
-        thread = threading.Thread(target=self.receive)
+        thread = threading.Thread(target=self.receive, name='llap-receiver')
         thread.daemon = True
         thread.start()
-        thread = threading.Thread(target=self.retry_commands)
+        thread = threading.Thread(target=self.retry_commands, name='llap-retry')
         thread.daemon = True
         thread.start()
-        thread = threading.Thread(target=self.__send__)
+        thread = threading.Thread(target=self.__send__, name='llap-sender')
         thread.daemon = True
         thread.start()
 

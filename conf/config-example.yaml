@@ -29,6 +29,15 @@ receivers:
     command: echo
     args: ${name} is now ${state}
     intools: false # will look in the tools directory of the piautomator project if this is true
+    any-state: true #
+
+  alwaysechosomething:
+        type: ToolCommandReceiver
+        command: echo
+        args: ${name} is now ${state}
+        intools: false # will look in the tools directory of the piautomator project if this is true
+        any-state: true # supports any state (otherwise it will support only on/off or whatever your specific receiver subclass defines as states
+        maintain-state: false # If false, then the receiver will not check if state has changed (see also 'always' on rules)
 
   # Send a notification to PROWL, you can send yourself a notification when something important happens
   notification:
@@ -87,5 +96,14 @@ rules:
   - when bathroom.humidity is greater than 57 then turn homefan on and send notification "Homefan is on" and print echosomething on
   - when bathroom.humidity is less than 55 then turn homefan off and send notification "Homefan is off" and print echosomething off
   - when pilight.frontgarden.lightsensor.level less than 44 then turn outsidelights on
+  # Note the always prefix below. Normally a rule will only fire if it didn't match the previous eval.
+  # With the always prefix it will fire everytime one of the conditions has an updated value and the rule matches, even
+  # if it already fired the previous run. In this case every sensor reading above 65 will result in a 'boring3' echo all the time.
+  - always when bathroom.humidity is less than 65 then turn homefan off and print alwaysechosomething "boring3"
+  # This one has always on action level too. actions in this mode are always performed even if the receiver state doesnt
+  # change. Note that receiver state is global, not rule local. So a receiver used in multiple rules might naturally already
+  # exhibit always like behaviour
+  - always when bathroom.humidity is less than 65 then always turn homefan off and print echosomething "boring3"
   - every day at 22:00 turn homefan on
   - every day at 22:01 turn homefan off
+  - every wednesday and friday at 22:01 turn homefan off
