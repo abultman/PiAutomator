@@ -25,13 +25,13 @@ class Condition(object):
 
 
 class ConditionalRule(Rule):
-    def __init__(self, rule_context, rule_state, data):
+    def __init__(self, rule_context, rule_state, data, nested_rule):
         """
         @type rule_context: rules.RuleContext
         @type rule_state: RuleState
         @type data: matplotlib.pyparsing.ParseResults
         """
-        super(ConditionalRule, self).__init__(rule_context, rule_state, data)
+        super(ConditionalRule, self).__init__(rule_context, rule_state, data, nested_rule)
         self.conditions = [Condition(condition) for condition in data['conditions']]
         self.always_fire = 'always_fire_rule' in data
 
@@ -49,4 +49,4 @@ class ConditionalRule(Rule):
         self.rule_state.rule_id, self.rule_state.rule_name, self.actions, self.conditions)
 
     def fire_always(self):
-        return self.always_fire and self.max_change_time() > self.rule_state['fire_time']
+        return self.always_fire and (self.max_change_time() > self.rule_state['fire_time'] or self.parent is not None)

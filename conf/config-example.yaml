@@ -96,10 +96,12 @@ rules:
   - when bathroom.humidity is greater than 57 then turn homefan on and send notification "Homefan is on" and print echosomething on
   - when bathroom.humidity is less than 55 then turn homefan off and send notification "Homefan is off" and print echosomething off
   - when pilight.frontgarden.lightsensor.level less than 44 then turn outsidelights on
+
   # Note the always prefix below. Normally a rule will only fire if it didn't match the previous eval.
   # With the always prefix it will fire everytime one of the conditions has an updated value and the rule matches, even
   # if it already fired the previous run. In this case every sensor reading above 65 will result in a 'boring3' echo all the time.
   - always when bathroom.humidity is less than 65 then turn homefan off and print alwaysechosomething "boring3"
+
   # This one has always on action level too. actions in this mode are always performed even if the receiver state doesnt
   # change. Note that receiver state is global, not rule local. So a receiver used in multiple rules might naturally already
   # exhibit always like behaviour
@@ -107,3 +109,14 @@ rules:
   - every day at 22:00 turn homefan on
   - every day at 22:01 turn homefan off
   - every wednesday and friday at 22:01 turn homefan off
+
+  # You can nest conditionals in schedules. always has a slightly different meaning in this context
+  # as the rule doesn't care about datapoint updates. So every 10 minutes it will compare the lightlevel to
+  # your setting and then fire if it is above.
+  - every 10 minutes always when outside.lightlevel is greater than 50 then always turn atticlights off
+
+  # Bit useless, but to illustrate. the keywork override puts all receivers in the rule in to override mode
+  # this means that regular rules can no longer switch this receiver. It can only be turned off by a rule that
+  # explicitly turns override mode off again
+  - every 10 seconds turn homefan off override
+  - every 40 seconds turn homefan on override off

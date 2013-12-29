@@ -122,3 +122,12 @@ class TestRuleParser(TestCase):
         self.assertIsInstance(parse, ConditionalRule)
         self.assertEqual(parse.always_fire, True)
         self.assertEqual(parse.actions[0].always_fire, True)
+
+    def test_can_nest_conditional_in_schedule(self):
+        parse = self.parser.parse("every 10 minutes when lightlevel.level is greater than 10 then turn lights off", self.context)
+        self.assertIsInstance(parse, ScheduleRule)
+        self.assertIsInstance(parse.nested_rule, ConditionalRule)
+        self.assertEqual(parse.nested_rule.actions[0].always_fire, False)
+        self.assertEqual(parse.nested_rule.actions[0].receiver, 'lights')
+        self.assertEqual(parse.nested_rule.actions[0].state, 'off')
+        self.assertEqual(parse.nested_rule.actions[0].verb, 'turn')

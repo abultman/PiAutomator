@@ -60,9 +60,6 @@ class AutomationContext(object):
                 return True
             except ValueError:
                 return False
-            except:
-                print "FML"
-                print s
 
         if isinstance(values, dict):
             for key in values:
@@ -221,7 +218,6 @@ class AutomationContext(object):
                     __logger__.exception(ioe)
             except ValueError:
                 __logger__.warn("Stated not loaded due invalid json format in state file")
-                print "Invalid json data"
             __logger__.info("Starting with a clean state")
         return {}
 

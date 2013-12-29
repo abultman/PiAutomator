@@ -6,6 +6,7 @@ from schedulerule import ScheduleRule
 
 _known_rules = {
     'input-rule': ConditionalRule,
+    'nested-input-rule': ConditionalRule,
     'schedule-rule': ScheduleRule
 }
 
@@ -38,7 +39,7 @@ class RuleParser(object):
 
             action = Group(verb + receiver + state)
             actions = ZeroOrMore(action + _and) + action
-            return Optional("always").setResultsName("always_fire_actions") + Group(actions).setResultsName("actions")
+            return Optional("always").setResultsName("always_fire_actions") + Group(actions).setResultsName("actions") + Optional(override + Optional("off")).setResultsName("override")
 
         actions = __actions()
 
@@ -60,11 +61,11 @@ class RuleParser(object):
             timeIndication = at + Combine(Optional(number) + colon + number).setResultsName("time")
 
             recurringPlural = Group(
-                every + number.setResultsName("count") + oneOf("days hours seconds weeks").setResultsName(
+                every + number.setResultsName("count") + oneOf("days hours minutes seconds weeks").setResultsName(
                     "unit") + Optional(timeIndication)).setResultsName("pluralSchedule")
 
             recurringSingular = Group(
-                every + oneOf("day hour second week sunday weekday weekendday").setResultsName("unit") + Optional(timeIndication)).setResultsName(
+                every + oneOf("day hour minute second week sunday weekday weekendday").setResultsName("unit") + Optional(timeIndication)).setResultsName(
                 "singularSchedule")
 
             dayOfWeek = oneOf("monday tuesday wednesday thursday friday saturday sunday")
@@ -72,7 +73,7 @@ class RuleParser(object):
                 every + Group(ZeroOrMore(dayOfWeek + _and) + dayOfWeek).setResultsName("unit") + Optional(timeIndication)).setResultsName(
                 "singularSchedule")
 
-            return (recurringPlural | recurringSingular |recurringDay) + actions + Optional(override + Optional("off")).setResultsName("override")
+            return (recurringPlural | recurringSingular |recurringDay) + (actions | receiver_input_rule().setResultsName("nested-input-rule"))
 
         rule_type = (
             receiver_input_rule().setResultsName("input-rule") |
@@ -93,13 +94,23 @@ class RuleParser(object):
             __logger__.exception(e)
             raise e
 
+    def __build_rule__(self, raw_parse, rule_context, rule_id, rule_type, toParse, nested_rule = None):
+        my_class = _known_rules[rule_type]
+        rule_state = RuleState(rule_id, toParse, rule_context)
+        return my_class(rule_context, rule_state, raw_parse[rule_type], nested_rule)
+
     def parse(self, toParse, rule_context):
         """
         @rtype: rules.Rule
         """
         raw_parse = self.rawParse(toParse)
+
         rule_id = raw_parse.get('rule-id', 'rule-%d' % self.rules_parsed)
         rule_type = raw_parse.getName()
-        my_class = _known_rules[rule_type]
-        rule_state = RuleState(rule_id, toParse, rule_context)
-        return my_class(rule_context, rule_state, raw_parse[rule_type])
+
+        nested_rule = None
+        for key in raw_parse.keys():
+            if key.startswith('nested-'):
+                nested_rule = self.__build_rule__(raw_parse, rule_context, rule_id + "_1", key, toParse)
+
+        return self.__build_rule__(raw_parse, rule_context, rule_id, rule_type, toParse, nested_rule)

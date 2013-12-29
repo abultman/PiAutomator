@@ -63,13 +63,21 @@ class RuleState(object):
 
 
 class Rule(object):
-    def __init__(self, rule_context, rule_state, data):
+    def __init__(self, rule_context, rule_state, data, nested_rule):
         """
         @type rule_state: RuleState
         @type rule_context: RuleContext
         @type data: matplotlib.pyparsing.ParseResults
+        @type nested_rule: Rule
+        @type parent_rule: Rule
         """
-        self.actions = [Action(action, 'always_fire_actions' in data) for action in data['actions']]
+        self.nested_rule = nested_rule
+        self.parent = None
+        if self.nested_rule is None:
+            self.actions = [Action(action, 'always_fire_actions' in data) for action in data['actions']]
+        else:
+            self.actions = []
+            self.nested_rule.set_parent(self)
         self.override = "override" in data
         self.overrideOff = False
         if self.override and len(data["override"]) == 1:
@@ -90,9 +98,15 @@ class Rule(object):
         return self.rule_state['success_state'] == 0
 
     def performActions(self):
+        __logger__.debug("should we fire?: %s", self.should_rule_fire())
 
         if self.should_rule_fire():
+            __logger__.debug("performing actions for %s", self.rule_state.rule_name)
             [action.perform(self.rule_context, self.rule_state, self.override, self.overrideOff) for action in self.actions]
+            if self.nested_rule and self.nested_rule.matches():
+                __logger__.debug("performing nested rule for %s", self.rule_state.rule_name)
+                self.nested_rule.performActions()
+
             self.rule_state.success()
             __logger__.debug('fired %s', self.rule_state.rule_name)
 
@@ -104,6 +118,9 @@ class Rule(object):
 
     def stop(self):
         pass
+
+    def set_parent(self, parent):
+        self.parent = parent
 
 
 class RuleContext(object):

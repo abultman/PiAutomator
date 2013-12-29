@@ -46,7 +46,6 @@ class Rules(object):
                 'rule_text' : rule.rule_state.rule_name,
                 'state' : rule.rule_state.data
             }, "all_rules" : cherrypy.url("../rule/")}
-            print rule.actions
             return struct
 
         else:
