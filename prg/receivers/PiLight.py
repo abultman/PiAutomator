@@ -6,9 +6,9 @@ from receivers import Receiver
 __logger__ = logging.getLogger('pilight-transmitter')
 __logger__.setLevel(logging.INFO)
 
-class PiLight(Receiver):
+class pilight(Receiver):
     def __init__(self, name, context, settings):
-        super(PiLight, self).__init__(name, context, settings)
+        super(pilight, self).__init__(name, context, settings)
         self.host = context.config.getSetting(['pilight', 'host'])
         self.port = context.config.getSetting(['pilight', 'port'])
 

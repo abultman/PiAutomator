@@ -57,7 +57,7 @@ receivers:
   # pilight treats as up/down state wheras it treats new protocols as on/off
   homefan:
     translate-up-down: true
-    type: PiLight
+    type: pilight
     location: home
     device: homefan
 
@@ -77,7 +77,7 @@ inputs:
   # DHT22 input through pilight
   # In this case you can add a scale to lower it from 171 to 17.1 degrees etc. You don't have to
   bathroom:
-     type: PiLight
+     type: pilight
      location: bathroom
      device: h_t_sensor
      scale: 0.1
@@ -88,7 +88,7 @@ inputs:
    # for instance pilight.livingroom.christmastree.state
    # or pilight.bathrool.h_t_sensor.humidity etc
    all-pilight:
-     type: PiLight
+     type: pilight
      location: all
      device: all
 

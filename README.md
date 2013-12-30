@@ -206,7 +206,7 @@ example of pilight output:
 ```
   outsidelights:
     translate-up-down: true # If using old style KAKY will translate rule action on/off to receiver up/down
-    type: PiLight
+    type: pilight
     location: frontgarden  # Location from pilight config
     device: lights  # device from pilight config
 ```
@@ -214,7 +214,7 @@ example of pilight output:
 example of specific pilight input:
 ```
    bathroom:
-     type: PiLight
+     type: pilight
      location: bathroom  # location from pilight config
      device: h_t_sensor  # device from pilight config
      scale: 0.1  # Optional scale you can add to receivers returning numbers (works for all receivers)
@@ -226,7 +226,7 @@ example of specific pilight input:
 you van also add all pilight input to the mix:
 ```
    all-pilight:
-     type: PiLight
+     type: pilight
      location: all
      device: all
 

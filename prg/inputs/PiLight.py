@@ -19,13 +19,13 @@ def init(config):
 
     @type config: config.AutomationConfig
     """
-    receiver = PiLightDaemon(
+    receiver = pilightDaemon(
         config.getSetting(['pilight', 'host'], '127.0.0.1'),
         config.getSetting(['pilight', 'port'], 5000))
 
-class PiLight(AnInput):
+class pilight(AnInput):
     def __init__(self,  name, context, settings):
-        super(PiLight, self).__init__(name, context, settings)
+        super(pilight, self).__init__(name, context, settings)
         self.room = settings['location']
         self.input = settings['device']
         self.scale = settings['scale']
@@ -70,7 +70,7 @@ class PiLight(AnInput):
             values = self.__get_values__(data['code'])
             self.publish(values, publish_key)
 
-class PiLightDaemon(object):
+class pilightDaemon(object):
     def __init__(self, host, port):
         self.host = host
         self.port = port
