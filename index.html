@@ -31,17 +31,57 @@
       </header>
       <section>
         <h1>
-<a name="piautomator" class="anchor" href="#piautomator"><span class="octicon octicon-link"></span></a>PiAutomator</h1>
+<a name="pi-automator" class="anchor" href="#pi-automator"><span class="octicon octicon-link"></span></a>Pi-Automator</h1>
 
 <p>Simple Python lib that allows you to read values from sensors etc. on the Pi and then trigger receivers into certain states.</p>
 
-<p>Currently using this with a DHT22 sensor wired and a wired switch (KlikAanKlikUit) 
+<p>Currently using this with a DHT22 sensor wired and a wired switch (KlikAanKlikUit)
 to switch the fan when it gets too humid in the bathroom</p>
 
 <p>The setup is created in such a way that it should be easy enough to add more and different types of sensors and the
 types of receivers should also be able to get a bit more variation, although I'll probably stick with kaku for now.</p>
 
+<p>reads:</p>
+
+<ul>
+<li>LLAP sensors</li>
+<li>pilight events</li>
+<li>DHT22</li>
+<li>Onkyo amps</li>
+</ul><p>sends:</p>
+
+<ul>
+<li>pilight events (turn on lights etc)</li>
+<li>old protocol klik aan klik uit</li>
+<li>Prowl (ios notifs)</li>
+<li>Any cmd line</li>
+</ul><p>Open to suggestions :)</p>
+
 <h2>
+<a name="general-concepts" class="anchor" href="#general-concepts"><span class="octicon octicon-link"></span></a>General Concepts</h2>
+
+<p>Configures a set of rules that</p>
+
+<ol>
+<li>Take input from configured  receivers (like the DHT22)</li>
+<li>Take a fixed schedule</li>
+</ol><p>and then execute (a series of) actions when input meets criteria.</p>
+
+<p>An example of a rule could be:</p>
+
+<ul>
+<li>when kitchen.temperature is greater than 25 then turn airconditioning on</li>
+<li>every day at 20:00 turn outsidelights on</li>
+</ul><p>take a look at the included config-example.yaml on what is possible.</p>
+
+<p>To get started:</p>
+
+<ol>
+<li>Install the required python libs.</li>
+<li>Create a config.yaml in conf/ with your settings -&gt; <a href="https://github.com/abultman/PiAutomator/blob/master/conf/config-example.yaml" title="example config">example</a>
+</li>
+<li>run bin/bin/start-automator.py</li>
+</ol><h2>
 <a name="required-libs" class="anchor" href="#required-libs"><span class="octicon octicon-link"></span></a>Required libs</h2>
 
 <p>A couple of python modules were used in the writing of this software. You should install then too:</p>
@@ -196,29 +236,6 @@ something or it's options are exhausted.</p>
 I used <a href="https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphite.sh">https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphite.sh</a> to quickly get graphite on the pi.</p>
 
 <h2>
-<a name="general-concepts" class="anchor" href="#general-concepts"><span class="octicon octicon-link"></span></a>General Concepts</h2>
-
-<p>Configures a set of rules that</p>
-
-<ol>
-<li>Take input from configured  receivers (like the DHT22)</li>
-<li>Take a fixed schedule</li>
-</ol><p>and then execute (a series of) actions when input meets criteria.</p>
-
-<p>An example of a rule could be:</p>
-
-<ul>
-<li>when kitchen.temperature is greater than 25 then turn airconditioning on</li>
-<li>every day at 20:00 turn outsidelights on</li>
-</ul><p>take a look at the included config-example.yaml on what is possible.</p>
-
-<p>To get started:</p>
-
-<ol>
-<li>Install the required python libs.</li>
-<li>Create a config.yaml in conf/ with your settings</li>
-<li>run bin/bin/start-automator.py</li>
-</ol><h2>
 <a name="pilight" class="anchor" href="#pilight"><span class="octicon octicon-link"></span></a>pilight</h2>
 
 <p>PiAutomator supports adding pilight as both inputs and receivers. pilight can read the DHT22 all by itself, should you not want to, you can config it directly.</p>
@@ -256,9 +273,20 @@ I used <a href="https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphi
    - when pilight.livingroom.christmastree.state is equal to 'up' then turn music on
 </code></pre>
 
-<p>Doing this will make all pilight values available for your rules to play with. Specific inputs take precedence over the all, so you can still have individual ones where you think it needed.</p>
+<p>Doing this will make all pilight values available for your rules to play with. Specific inputs take precedence over
+the 'all', so you can still have individual ones where you think it needed. Besides the nice mapping values that
+basically comes from the pilight config.json, pi-automator supports a raw mode. This raw mode take raw json from
+pilight that comes in and saves it into the values context.
+It looks like the raw values are a bit more sensitive in pilight, so especially for remote controls this looks easier.
+also, it doesn't to state checks, so you'll get the events regardless.</p>
 
-<p>If you're unsure about what keys to use, the automator dumps it's state when you stop it. So have a look at the input section there.</p>
+<p>example for a value that comes from a kaku remote:</p>
+
+<pre><code> - always when pilight.raw.archtech_screens.11442262.0.state_int is equal to 1 then always turn christmastree on
+ - always when pilight.raw.archtech_screens.11442262.0.state_int is equal to 0 then always turn christmastree off
+</code></pre>
+
+<p>If you're unsure about what keys to use, the automator dumps it's state when you stop it in conf/state.json. So have a look at the input section there.</p>
 
 <p><a href="http://www.pilight.org/">http://www.pilight.org/</a></p>
 
