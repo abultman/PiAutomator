@@ -1,3 +1,4 @@
+import hashlib
 import logging
 from pyparsing import Suppress, Word, alphas, nums, quotedString, removeQuotes, Group, ZeroOrMore, oneOf, Combine, Optional, ParseException
 from rules import RuleState, operators
@@ -105,7 +106,7 @@ class RuleParser(object):
         """
         raw_parse = self.rawParse(toParse)
 
-        rule_id = raw_parse.get('rule-id', 'rule-%d' % self.rules_parsed)
+        rule_id = raw_parse.get('rule-id', 'rule-%s' % hashlib.md5(toParse).hexdigest())
         rule_type = raw_parse.getName()
 
         nested_rule = None
@@ -114,3 +115,4 @@ class RuleParser(object):
                 nested_rule = self.__build_rule__(raw_parse, rule_context, rule_id + "_1", key, toParse)
 
         return self.__build_rule__(raw_parse, rule_context, rule_id, rule_type, toParse, nested_rule)
+
