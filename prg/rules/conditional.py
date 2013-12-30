@@ -1,5 +1,9 @@
+import logging
 from rules import operators, Rule
 
+
+__logger__ = logging.getLogger('conditional-rule')
+__logger__.setLevel(logging.INFO)
 
 class Condition(object):
     def __init__(self, data):

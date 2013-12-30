@@ -29,7 +29,7 @@ class RuleState(object):
             "total_failed_count": get_value("total_failed_count"),
             "success_state": get_value("success_state"),
             "failed_state": get_value("failed_state"),
-            "fire_time": get_value("fire_date")
+            "fire_time": get_value("fire_time")
         }
         self.rule_id = rule_id
         self.rule_name = rule_name
@@ -87,7 +87,7 @@ class Rule(object):
         elif self.override:
             __logger__.info(
                 "rule '%s' has override configuration and will turn a possible override state on" % rule_state.rule_name)
-        self.   rule_state = rule_state
+        self.rule_state = rule_state
         self.rule_context = rule_context
         self.always_fire = False
 
@@ -136,7 +136,13 @@ class RuleContext(object):
         """
         @type rule: rules.Rule
         """
-        self.rules[rule.rule_state.rule_id] = rule
+        rule_id = rule.rule_state.rule_id
+        if rule_id in self.rules:
+            __logger__.error("rule with id %s defined more than once, illegal", rule_id)
+            raise ValueError()
+
+        __logger__.info("%s -> %s", rule_id, rule.rule_state.rule_name)
+        self.rules[rule_id] = rule
         if self.started:
             rule.start()
 
@@ -150,6 +156,7 @@ class RuleContext(object):
                 if rule_id not in self.rules:
                     rules_to_delete.append(rule_id)
             for rule_id in rules_to_delete:
+                __logger__.info("Removing %s from automation context, since the rule no longer exists", rule_id)
                 rule_values.pop(rule_id)
         __logger__.info("Rule context started")
 
