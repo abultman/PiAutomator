@@ -165,14 +165,16 @@ class AutomationContext(object):
         except:
             return None
 
-    def __force_run__(self):
-        self.trigger.put(True)
-        self.async_perform(self.save)
+    def __scheduled_stuff__(self):
+        if self.config.getSetting(['automator', 'periodic-rule-eval'], False):
+            self.trigger.put(True)
+        if self.config.getSetting(['automator', 'periodic-state-save'], False):
+            self.async_perform(self.save)
 
     def start(self):
         self.receivers.start()
         self.schedule = schedule.every(self.config.getSetting(['automator', 'reporting-interval'], 10)).seconds.do(self.__export_data__)
-        self.schedule = schedule.every(10).seconds.do(self.__force_run__)
+        self.schedule = schedule.every(10).seconds.do(self.__scheduled_stuff__)
         self.rule_context.start()
         self.inputs.start()
 
