@@ -1,6 +1,5 @@
 import logging
 from rules import operators, Rule
-import ping
 
 __logger__ = logging.getLogger('conditional-rule')
 __logger__.setLevel(logging.INFO)
