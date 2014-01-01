@@ -3,7 +3,7 @@ import socket
 import struct
 import threading
 import time
-from inputs import AnInput
+from inputs.inputs import AnInput
 
 class converter(object):
     def to(self, input):
