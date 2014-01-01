@@ -16,12 +16,13 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
 
 # Initialize all components
 config = AutomationConfig(basedir)
-context = AutomationContext(config)
-context.receivers = receivers.init(context)
-context.inputs = inputs.init(context)
-context.rule_context = rules.init(context)
+global automation_context
+automation_context = AutomationContext(config)
+automation_context.receivers = receivers.init(automation_context)
+automation_context.inputs = inputs.init(automation_context)
+automation_context.rule_context = rules.init(automation_context)
 
-context.start()
+automation_context.start()
 
 # Setup the handler that will terminate our event loops.
 global running
@@ -30,7 +31,7 @@ running = True
 def signal_handler(signal, frame):
     global running
     running = False
-    context.stop()
+    automation_context.stop()
     print 'Terminating'
 
 

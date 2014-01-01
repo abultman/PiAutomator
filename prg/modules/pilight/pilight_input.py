@@ -7,7 +7,6 @@ import logging
 import threading
 import time
 from config import LocalSettings
-from core import SCOPE_INPUT
 from inputs.inputs import AnInput
 
 pilight_sensors = {}
@@ -99,6 +98,7 @@ class pilightDaemon(object):
             self.socket.connect((self.host, self.port))
             self.socket.send(json.dumps({'message': 'client gui'}))
             self.socket.send(json.dumps({'message': 'request config'}))
+            self.send_to_all({'values': {'state': 'up'}}, 'connection')
             __logger__.info("Starting in receiving mode for pilight")
         except:
             self.socket = None
@@ -134,6 +134,7 @@ class pilightDaemon(object):
             except:
                 pass
             self.socket = None
+            self.send_to_all({'values': {'state': 'down'}}, 'connection')
             __logger__.info("raw input terminated, pilight down?")
 
         while True:
@@ -173,14 +174,11 @@ class pilightDaemon(object):
                 key = "%s.%s" % (device, input)
                 if key in pilight_sensors:
                     pilight_sensors[key].update(message)
-                elif 'all.all' in pilight_sensors:
-                    pilight_sensors['all.all'].update(message, key)
-
+                else:
+                    self.send_to_all(message, key)
 
     def process_raw_message(self, message):
-        if 'all.all' in pilight_sensors:
-            pilight_sensors['all.all'].update(message, 'raw')
-
+        self.send_to_all(message, 'raw')
 
     def process_config_message(self, message):
         config = message['config']
@@ -196,3 +194,6 @@ class pilightDaemon(object):
         else:
             self.process_raw_message(message)
 
+    def send_to_all(self, message, key):
+        if 'all.all' in pilight_sensors:
+            pilight_sensors['all.all'].update(message, key)
