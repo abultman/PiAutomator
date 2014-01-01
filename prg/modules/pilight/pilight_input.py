@@ -7,25 +7,26 @@ import logging
 import threading
 import time
 from config import LocalSettings
-from inputs import AnInput
+from core import SCOPE_INPUT
+from inputs.inputs import AnInput
 
 pilight_sensors = {}
 __logger__ = logging.getLogger('pilight-receiver')
 __logger__.setLevel(logging.INFO)
 
-def init(config):
+def init_module(config):
     """
     Initializes the pilight receiver connection. Sets up a heartbeat
 
     @type config: config.AutomationConfig
     """
-    receiver = pilightDaemon(
+    pilightDaemon(
         config.getSetting(['pilight', 'host'], '127.0.0.1'),
         config.getSetting(['pilight', 'port'], 5000))
 
-class pilight(AnInput):
+class pilight_input(AnInput):
     def __init__(self,  name, context, settings):
-        super(pilight, self).__init__(name, context, settings)
+        super(pilight_input, self).__init__(name, context, settings)
         self.room = settings['location']
         self.input = settings['device']
         self.scale = settings['scale']

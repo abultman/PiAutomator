@@ -10,7 +10,7 @@ import re
 import serial
 import sys
 import time
-from inputs import AnInput
+from inputs.inputs import AnInput
 
 def millis():
     return time.time() * 1000

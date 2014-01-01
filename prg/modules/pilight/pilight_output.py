@@ -1,14 +1,14 @@
 import json
 import logging
 import socket
-from receivers import Receiver
+from receivers.receivers import Receiver
 
 __logger__ = logging.getLogger('pilight-transmitter')
 __logger__.setLevel(logging.INFO)
 
-class pilight(Receiver):
+class pilight_output(Receiver):
     def __init__(self, name, context, settings):
-        super(pilight, self).__init__(name, context, settings)
+        super(pilight_output, self).__init__(name, context, settings)
         self.host = context.config.getSetting(['pilight', 'host'])
         self.port = context.config.getSetting(['pilight', 'port'])
 

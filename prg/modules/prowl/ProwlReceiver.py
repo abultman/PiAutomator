@@ -2,8 +2,7 @@ import logging
 import urllib
 import urllib2
 
-from receivers import Receiver
-
+from receivers.receivers import Receiver
 
 class ProwlInitializtionError(Exception):
     pass

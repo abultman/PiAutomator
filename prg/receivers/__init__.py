@@ -1,4 +1,4 @@
-import schedule
+from core import SCOPE_RECEIVER, load_class
 from config import LocalSettings
 
 from graphitereporter import *
@@ -10,16 +10,7 @@ __logger__.setLevel(logging.INFO)
 
 
 def __load_receiver__(elem, config):
-    if elem not in __myclasses__:
-        __logger__.info("Loading receiver of type %s" % elem)
-        mod = __import__(elem, globals=globals())
-        __myclasses__[elem] = getattr(mod, elem)
-        if hasattr(mod, 'init'):
-            getattr(mod, 'init')(config)
-            __logger__.info("Initializing %s" % elem)
-
-    return __myclasses__[elem]
-
+    return load_class(elem, config, SCOPE_RECEIVER)
 
 def init(context):
     # g = GraphiteReporter(config, "receivers")

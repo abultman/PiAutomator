@@ -4,6 +4,7 @@ import logging
 import subprocess
 
 from receivers import *
+from receivers.receivers import Receiver
 
 
 jobqueue = Queue.Queue()
@@ -12,7 +13,7 @@ __logger__ = logging.getLogger("tool-command-receiver")
 __logger__.setLevel(logging.INFO)
 
 
-def init(config):
+def init_module():
     def __worker_main__():
         while True:
             toexec = jobqueue.get()

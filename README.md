@@ -269,7 +269,7 @@ And set the remote up to send LLAP compatible data.
 then add a LLAP receiver per device you have installed:
 ```
   outside1:
-    type: LLAP
+    type: llap
     device-id: AA
 ```
 

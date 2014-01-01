@@ -1,7 +1,6 @@
-#!/usr/bin/python
 from __future__ import with_statement
 from array import array
-import receivers
+from receivers.receivers import Receiver
 import wiringpi2
 
 __pin__ = 15
@@ -12,14 +11,14 @@ class WiringError(Exception):
     pass
 
 
-def init(config):
+def init_module(config):
     KlikAanKlikUitReceiver.__pin__ = int(config.getSetting(['kaku', 'pin']))
     KlikAanKlikUitReceiver.__repeats__ = int(config.getSetting(['kaku', 'repeats']))
     if wiringpi2.wiringPiSetup() == -1:
         raise WiringError("Unable to init wiringpi")
 
 
-class KlikAanKlikUitReceiver(receivers.Receiver):
+class KlikAanKlikUitReceiver(Receiver):
     def __init__(self, name, context, settings):
         super(KlikAanKlikUitReceiver, self).__init__(name, context, settings)
         self.pin = __pin__

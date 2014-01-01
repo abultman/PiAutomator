@@ -25,14 +25,14 @@ receivers:
 
   # Simple example of a ToolCommandReceiver that calls echo
   echosomething:
-    type: ToolCommandReceiver
+    type: toolcommand
     command: echo
     args: ${name} is now ${state}
     intools: false # will look in the tools directory of the piautomator project if this is true
     any-state: true #
 
   alwaysechosomething:
-        type: ToolCommandReceiver
+        type: toolcommand
         command: echo
         args: ${name} is now ${state}
         intools: false # will look in the tools directory of the piautomator project if this is true
@@ -41,14 +41,14 @@ receivers:
 
   # Send a notification to PROWL, you can send yourself a notification when something important happens
   notification:
-    type: ProwlReceiver
+    type: prowl
     api-key: <MY-Awesome-Prowl-api-key>
     application: homeautomation
     any-state: true
 
   # Direct KlikAanKlikUit receiver (old protocol), native python implementation.
   homefan:
-    type: KlikAanKlikUitReceiver
+    type: klikaanklikuit
     address: A
     device: 1
 
@@ -64,14 +64,15 @@ receivers:
   # Receiver of type LLAP. Usefull for wireless sensing lowlevel inputs
   # Known LLAP values get translated into context values automatically
   outside1:
-    type: LLAP
+    type: llap
     device-id: AA
 
 inputs:
 
   # Direct DHT22 input
   bathroom:
-    type: DHT22
+    type: dht
+    dhttype: 22 # 22 or 11 supported
     pin: 4
 
   # DHT22 input through pilight

@@ -3,8 +3,6 @@ import socket
 import struct
 import threading
 import time
-import sys
-from config import LocalSettings
 from inputs import AnInput
 
 class converter(object):

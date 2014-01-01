@@ -1,6 +1,6 @@
 import logging
 from rules import operators, Rule
-
+import ping
 
 __logger__ = logging.getLogger('conditional-rule')
 __logger__.setLevel(logging.INFO)
@@ -52,5 +52,12 @@ class ConditionalRule(Rule):
         return "%s %s actions %s\nconditions %s" % (
         self.rule_state.rule_id, self.rule_state.rule_name, self.actions, self.conditions)
 
+    def condition_changed(self):
+        fire_time = self.rule_state['fire_time']
+        return self.max_change_time() > fire_time
+
+    def has_parent(self):
+        return self.parent is not None
+
     def fire_always(self):
-        return self.always_fire and (self.max_change_time() > self.rule_state['fire_time'] or self.parent is not None)
+        return self.always_fire and (self.condition_changed() or self.has_parent())

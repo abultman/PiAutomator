@@ -1,9 +1,6 @@
-import Queue
-import threading
-
 import schedule
-import time
 from config import LocalSettings
+from core import load_class, SCOPE_INPUT
 
 from graphitereporter import *
 
@@ -14,22 +11,14 @@ __logger__ = logging.getLogger("inputs")
 __logger__.setLevel(logging.INFO)
 
 
-def __load_receiver__(elem, config):
-    if elem not in __myclasses__:
-        __logger__.info("Loading input of type %s" % elem)
-        mod = __import__(elem, globals=globals())
-        __myclasses__[elem] = getattr(mod, elem)
-        if hasattr(mod, 'init'):
-            getattr(mod, 'init')(config)
-            __logger__.info("Initializing %s" % elem)
-
-    return __myclasses__[elem]
+def __load_input__(elem, config):
+    return load_class(elem, config, SCOPE_INPUT)
 
 def init(automation_context):
     inputs = automation_context.config.inputs()
     instantiatedInputs = Inputs(automation_context)
     for name in inputs:
-        my_class = __load_receiver__(inputs[name]['type'], automation_context.config)
+        my_class = __load_input__(inputs[name]['type'], automation_context.config)
         instantiatedInputs.addInput(my_class(name, automation_context, LocalSettings(inputs[name])))
 
     return instantiatedInputs
