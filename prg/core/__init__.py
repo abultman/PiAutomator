@@ -55,22 +55,32 @@ def __init_module__(config, elem, mod, scope):
         parent = __load_module__(mod.__package__)
         if parent is not None and hasattr(parent, INIT_MODULE) and parent not in __inited__:
             __logger__.info("Initializing parent of %s" % elem)
-            __inited__.append(parent)
             __init__(parent, config, scope)
 
-    if hasattr(mod, INIT_MODULE) and mod not in __inited__:
-        __logger__.info("Initializing %s" % elem)
-        __inited__.append(mod)
+    if hasattr(mod, INIT_MODULE):
         __init__(mod, config, scope)
 
 
-def __init__(parent, config, scope):
-    init_method = getattr(parent, INIT_MODULE)
-    if init_method.func_code.co_argcount == 2:
+def __init__(elem, config, scope):
+    init_method = getattr(elem, INIT_MODULE)
+    argcount = init_method.func_code.co_argcount
+    key = None
+    if argcount == 2:
+        key = '%s.%s' %(elem, scope)
+    else:
+        key = elem
+    if key in __inited__:
+        return
+
+    __logger__.info("Initializing %s" % elem)
+    if argcount == 2:
+        __inited__.append(key)
         init_method(config, scope)
-    elif init_method.func_code.co_argcount == 1:
+    elif argcount == 1:
+        __inited__.append(key)
         init_method(config)
-    elif init_method.func_code.co_argcount == 0:
+    elif argcount == 0:
+        __inited__.append(key)
         init_method()
     else:
         __logger__.info("Initmethod in %s can have 0 to 2 args" % elem)
