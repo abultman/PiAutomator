@@ -21,4 +21,7 @@ class DHT(PollingInput):
             return None
         return None
 
-config = {SCOPE_INPUT: DHT}
+def factory(name, context, settings):
+    return DHT(name, context,settings)
+
+config = {SCOPE_INPUT: factory}
