@@ -156,10 +156,13 @@ class Onkyo(AnInput):
     def __ask__(self, command):
         self.__send__(command + "QSTN")
 
-    def __read_initial_state(self):
+    def __read_initial_state(self, some_question = None):
         try:
-            for command in onkyo_commands:
-                self.__ask__(command)
+            if some_question is not None:
+                self.__ask__(some_question)
+            else:
+                for command in onkyo_commands:
+                    self.__ask__(command)
         except:
             self.__close_connection__("read_initial")
 
@@ -187,7 +190,7 @@ class Onkyo(AnInput):
                     if retry_count == 20:
                         retry_count = 0
                         in_retry = True
-                        self.__read_initial_state()
+                        self.__read_initial_state("PWR")
             except Exception, exception:
                 __logger__.exception(exception)
                 self.__close_connection__("exception")
