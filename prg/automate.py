@@ -18,9 +18,10 @@ log_format = config.get_setting(['automator', 'logging', 'format'], '%(asctime)s
 log_destination = config.get_setting(['automator', 'logging', 'destination'], 'file')
 
 if log_destination == 'file':
-    if not os.path.exists("../logs"):
-        os.mkdir("../logs")
-    logging.basicConfig(format=log_format, filename="../logs/piautomator.log")
+    logs_basedir = "%s/logs" % basedir
+    if not os.path.exists(logs_basedir):
+        os.mkdir(logs_basedir)
+    logging.basicConfig(format=log_format, filename="%s/piautomator.log" % logs_basedir)
 else:
     logging.basicConfig(format=log_format)
 
