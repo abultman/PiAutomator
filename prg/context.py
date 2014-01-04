@@ -60,6 +60,9 @@ class AutomationContext(object):
                 return True
             except ValueError:
                 return False
+        if path.endswith("_change_time") or path.endswith("_previous_value"):
+            # don't publish calculated values
+            return
 
         if isinstance(values, dict):
             for key in values:
@@ -89,8 +92,12 @@ class AutomationContext(object):
                     assignable = values[key]
                     if isinstance(assignable, Value):
                         assignable = assignable.value
+                    old_value = None
+                    if key in state:
+                        old_value = state[key]
                     state[key] = assignable
                     state[key + "_change_time"] = change_time
+                    state[key + "_previous_value"] = old_value
                     __logger__.debug("setting %s %s to %s", path, key, state[key])
                     if self.trigger.qsize() == 0:
                         self.trigger.put(True)
