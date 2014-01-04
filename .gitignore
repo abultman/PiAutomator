@@ -1,3 +1,4 @@
+logs/
 conf/config.yaml
 conf/state.json
 *.pyc

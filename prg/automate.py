@@ -12,10 +12,19 @@ import rules
 from config import AutomationConfig
 
 basedir = os.path.normpath("%s/.." % (os.path.dirname(os.path.abspath(__file__))))
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+config = AutomationConfig(basedir)
+
+log_format = config.get_setting(['automator', 'logging', 'format'], '%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+log_destination = config.get_setting(['automator', 'logging', 'destination'], 'file')
+
+if log_destination == 'file':
+    if not os.path.exists("../logs"):
+        os.mkdir("../logs")
+    logging.basicConfig(format=log_format, filename="../logs/piautomator.log")
+else:
+    logging.basicConfig(format=log_format)
 
 # Initialize all components
-config = AutomationConfig(basedir)
 global automation_context
 automation_context = AutomationContext(config)
 automation_context.receivers = receivers.init(automation_context)
@@ -32,7 +41,7 @@ def signal_handler(signal, frame):
     global running
     running = False
     automation_context.stop()
-    print 'Terminating'
+    print 'Terminated'
 
 
 signal.signal(signal.SIGINT, signal_handler)
