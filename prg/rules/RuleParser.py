@@ -52,7 +52,9 @@ class RuleParser(object):
             value = word_or_sentence.setResultsName("value")
             comparison = operator + value
 
-            condition = Group(input + _is + comparison)
+            is_or_was = Word("is") | Word("was")
+
+            condition = Group(input + is_or_was.setResultsName("temporal") + comparison)
             res = ZeroOrMore(condition + _and) + condition
             conditions = Group(res).setResultsName("conditions")
 

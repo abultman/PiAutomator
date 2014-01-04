@@ -31,6 +31,7 @@ class TestRuleParser(TestCase):
         self.assertEqual(len(parse.conditions), 2)
         self.assertEqual(parse.conditions[0].input, 'input.metric')
         self.assertEqual(parse.conditions[0].operator, operators['less than'])
+        self.assertEqual(parse.conditions[0].temporal, 'is')
 
         self.assertEqual(parse.conditions[1].input, 'input3.othermetric.that.is.super.nested')
         self.assertEqual(parse.conditions[1].operator, operators['equal to'])
@@ -131,3 +132,8 @@ class TestRuleParser(TestCase):
         self.assertEqual(parse.nested_rule.actions[0].receiver, 'lights')
         self.assertEqual(parse.nested_rule.actions[0].state, 'off')
         self.assertEqual(parse.nested_rule.actions[0].verb, 'turn')
+
+    def test_can_be_was_too(self):
+        parse = self.parser.parse("when my.input was less than 10 then send notification turbo", self.context)
+        self.assertIsInstance(parse, ConditionalRule)
+        self.assertEqual(parse.conditions[0].temporal, 'was')

@@ -9,6 +9,7 @@ class Condition(object):
         self.data = data
         self.input = data['input']
         self.operator = operators[self.data['operator']]
+        self.temporal = self.data['temporal']
         self.value = self.data['value']
         self.change_time = 0
 
@@ -19,6 +20,8 @@ class Condition(object):
         sensorValue = automation_context.getValue(self.input)
         if sensorValue:
             self.change_time = sensorValue.change_time
+            if self.temporal == 'was':
+                sensorValue = sensorValue.previous_value
             return self.operator(sensorValue, self.data['value'])
         else:
             return False

@@ -6,6 +6,10 @@ import time
 import schedule
 from graphitereporter import GraphiteReporter
 
+PREVIOUS_VALUE = "_previous_value"
+
+CHANGE_TIME = "_change_time"
+
 __logger__ = logging.getLogger("automation-context")
 __logger__.setLevel(logging.INFO)
 
@@ -60,7 +64,7 @@ class AutomationContext(object):
                 return True
             except ValueError:
                 return False
-        if path.endswith("_change_time") or path.endswith("_previous_value"):
+        if path.endswith(CHANGE_TIME) or path.endswith(PREVIOUS_VALUE):
             # don't publish calculated values
             return
 
@@ -96,8 +100,8 @@ class AutomationContext(object):
                     if key in state:
                         old_value = state[key]
                     state[key] = assignable
-                    state[key + "_change_time"] = change_time
-                    state[key + "_previous_value"] = old_value
+                    state[key + CHANGE_TIME] = change_time
+                    state[key + PREVIOUS_VALUE] = old_value
                     __logger__.debug("setting %s %s to %s", path, key, state[key])
                     if self.trigger.qsize() == 0:
                         self.trigger.put(True)
@@ -145,8 +149,9 @@ class AutomationContext(object):
         for prefix in self.prefixes.values():
             value = self._getValue(prefix + path)
             if not value == None:
-                change_time = self._getValue(prefix + path + "_change_time")
-                return Value(value, change_time)
+                change_time = self._getValue(prefix + path + CHANGE_TIME)
+                previous_value = self._getValue(prefix + path + PREVIOUS_VALUE)
+                return Value(value, change_time, previous_value)
         return None
 
     def getInputValue(self, path):
@@ -238,9 +243,10 @@ class AutomationContext(object):
         return {}
 
 class Value(object):
-    def __init__(self, value, change_time):
+    def __init__(self, value, change_time, previous_value):
         self.value = value
         self.change_time = change_time
+        self.previous_value = previous_value
 
     def __eq__(self, other):
         return self.value == other
