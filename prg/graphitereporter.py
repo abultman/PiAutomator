@@ -13,13 +13,13 @@ class GraphiteReporter(object):
     def __getG(self):
         def graphite_should_be_enabled():
             has_graphite = self.g
-            graphite_enabled = self.config.getSetting(['graphite', 'enabled'], False)
+            graphite_enabled = self.config.get_setting(['graphite', 'enabled'], False)
             return not has_graphite and graphite_enabled
 
         if graphite_should_be_enabled():
             try:
                 self.g = GraphiteClient(prefix='', group='%s.' % self.type,
-                                        graphite_server=self.config.getSetting(['graphite', 'host']))
+                                        graphite_server=self.config.get_setting(['graphite', 'host']))
             except:
                 e = sys.exc_info()
                 logging.error("Unable to establish Graphite connection")

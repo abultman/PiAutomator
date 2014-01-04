@@ -12,8 +12,8 @@ class WiringError(Exception):
 
 
 def init_module(config):
-    KlikAanKlikUitReceiver.__pin__ = int(config.getSetting(['kaku', 'pin']))
-    KlikAanKlikUitReceiver.__repeats__ = int(config.getSetting(['kaku', 'repeats']))
+    KlikAanKlikUitReceiver.__pin__ = int(config.get_setting(['kaku', 'pin']))
+    KlikAanKlikUitReceiver.__repeats__ = int(config.get_setting(['kaku', 'repeats']))
     if wiringpi2.wiringPiSetup() == -1:
         raise WiringError("Unable to init wiringpi")
 

@@ -9,8 +9,8 @@ __logger__.setLevel(logging.INFO)
 class pilight_output(Receiver):
     def __init__(self, name, context, settings):
         super(pilight_output, self).__init__(name, context, settings)
-        self.host = context.config.getSetting(['pilight', 'host'])
-        self.port = context.config.getSetting(['pilight', 'port'])
+        self.host = context.config.get_setting(['pilight', 'host'])
+        self.port = context.config.get_setting(['pilight', 'port'])
 
 
     def perform_for_state(self, verb, s):

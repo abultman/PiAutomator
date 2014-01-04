@@ -50,9 +50,9 @@ def init(config):
     global llap_receiver
 
     llap_receiver = LLAPDaemon(
-        config.getSetting(['llap','device'], '/dev/ttyAMA0'),
-        config.getSetting(['llap','print-debug-receive'], False),
-        config.getSetting(['llap','print-debug-send'], False)
+        config.get_setting(['llap','device'], '/dev/ttyAMA0'),
+        config.get_setting(['llap','print-debug-receive'], False),
+        config.get_setting(['llap','print-debug-send'], False)
     )
 
 class LLAPCommand(object):

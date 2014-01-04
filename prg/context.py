@@ -166,22 +166,24 @@ class AutomationContext(object):
             return None
 
     def __scheduled_stuff__(self):
-        if self.config.getSetting(['automator', 'periodic-rule-eval'], False):
+        if self.config.get_setting(['automator', 'periodic-rule-eval'], False):
             self.trigger.put(True)
-        if self.config.getSetting(['automator', 'periodic-state-save'], False):
+        if self.config.get_setting(['automator', 'periodic-state-save'], False):
             self.async_perform(self.save)
 
     def start(self):
         self.receivers.start()
-        self.schedule = schedule.every(self.config.getSetting(['automator', 'reporting-interval'], 10)).seconds.do(self.__export_data__)
+        self.schedule = schedule.every(self.config.get_setting(['automator', 'reporting-interval'], 10)).seconds.do(self.__export_data__)
         self.schedule = schedule.every(10).seconds.do(self.__scheduled_stuff__)
         self.rule_context.start()
         self.inputs.start()
 
         self.__start_local_threads()
+        self.publishValues("automationcontext", {'started': True})
         __logger__.info("Automation started")
 
     def stop(self):
+        self.publishValues("automationcontext", {'started': False})
         self.inputs.stop()
         self.trigger.put(False)
         while self.__rule_eval_thread__.isAlive():
@@ -199,7 +201,7 @@ class AutomationContext(object):
         __logger__.info("Automation stopped")
 
     def save(self):
-        if self.config.getSetting(['automator', 'save-state'], True):
+        if self.config.get_setting(['automator', 'save-state'], True):
             __lock__.acquire()
             try:
                 filename = "%s/conf/state.json" % self.config.get_basedir()
@@ -210,7 +212,7 @@ class AutomationContext(object):
                 __lock__.release()
 
     def load(self):
-        if self.config.getSetting(['automator', 'save-state'], True):
+        if self.config.get_setting(['automator', 'save-state'], True):
             try:
                 filename = "%s/conf/state.json" % self.config.get_basedir()
                 with open(filename, 'r') as outfile:

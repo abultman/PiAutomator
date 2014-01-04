@@ -29,7 +29,7 @@ def init(config, rule_context):
         {'/':
             {'request.dispatch': cherrypy.dispatch.MethodDispatcher()}
         })
-    cherrypy.config.update({"server.socket_port": config.getSetting(['web', 'port'], 8089)})
+    cherrypy.config.update({"server.socket_port": config.get_setting(['web', 'port'], 8089)})
     cherrypy.engine.start()
 
     return theweb

@@ -20,8 +20,8 @@ def init_module(config):
     @type config: config.AutomationConfig
     """
     pilightDaemon(
-        config.getSetting(['pilight', 'host'], '127.0.0.1'),
-        config.getSetting(['pilight', 'port'], 5000))
+        config.get_setting(['pilight', 'host'], '127.0.0.1'),
+        config.get_setting(['pilight', 'port'], 5000))
 
 class pilight_input(AnInput):
     def __init__(self,  name, context, settings):

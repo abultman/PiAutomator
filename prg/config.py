@@ -8,7 +8,7 @@ class AutomationConfig(object):
         with open("%s/conf/config.yaml" % basedir) as f:
             self.yaml = yaml.load(f)
 
-    def getSetting(self, mapList, default=None):
+    def get_setting(self, mapList, default=None):
         try:
             return reduce(lambda d, k: d[k], mapList, self.yaml)
         except KeyError as e:
@@ -18,13 +18,13 @@ class AutomationConfig(object):
                 raise e
 
     def inputs(self):
-        return self.getSetting(['inputs'])
+        return self.get_setting(['inputs'])
 
     def receivers(self):
-        return self.getSetting(['receivers'])
+        return self.get_setting(['receivers'])
 
     def rules(self):
-        return self.getSetting(['rules'])
+        return self.get_setting(['rules'])
 
     def get_basedir(self):
         return self.basedir

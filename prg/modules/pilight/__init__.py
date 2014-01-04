@@ -3,6 +3,7 @@ from modules.pilight.pilight_input import pilight_input, init_module as input_in
 from modules.pilight.pilight_output import pilight_output
 
 def init_module(config, scope):
+    print "PILIGHTHTHTHTHT"
     if scope == SCOPE_INPUT:
         input_init(config)
 
