@@ -1,3 +1,4 @@
+from logging.handlers import RotatingFileHandler
 import os
 import time
 import signal
@@ -21,7 +22,11 @@ if log_destination == 'file':
     logs_basedir = "%s/logs" % basedir
     if not os.path.exists(logs_basedir):
         os.mkdir(logs_basedir)
-    logging.basicConfig(format=log_format, filename="%s/piautomator.log" % logs_basedir)
+    logfile = "%s/piautomator.log" % logs_basedir
+    formatting = logging.Formatter(log_format, None)
+    handler = RotatingFileHandler(logfile, maxBytes=1024 * 1024 * 100, backupCount=3)
+    handler.setFormatter(formatting)
+    logging.root.addHandler(handler)
 else:
     logging.basicConfig(format=log_format)
 
