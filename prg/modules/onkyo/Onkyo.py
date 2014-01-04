@@ -157,7 +157,7 @@ class Onkyo(AnInput):
             for command in onkyo_commands:
                 self.__ask__(command)
         except:
-            self.__close_connection__()
+            self.__close_connection__("read_initial")
 
     def __read_while_open(self):
         retry_count = 0
@@ -170,14 +170,14 @@ class Onkyo(AnInput):
                 received = self.s.recv(1024)
                 in_retry = False
                 if received == '':
-                    self.__close_connection__()
+                    self.__close_connection__("nodata")
                 else:
                     self.buffer += received
                     self.__find_and_process__()
             except socket.timeout:
                 if in_retry:
                     # we should be getting data now :(
-                    self.__close_connection__()
+                    self.__close_connection__("retry")
                 else:
                     retry_count += 1
                     if retry_count == 20:
@@ -186,8 +186,7 @@ class Onkyo(AnInput):
                         self.__read_initial_state()
             except Exception, exception:
                 __logger__.exception(exception)
-                self.__close_connection__()
-        __logger__.info("connection closed")
+                self.__close_connection__("exception")
 
     def __find_and_process__(self):
         headerstart = self.buffer.find("ISCP")
@@ -210,11 +209,12 @@ class Onkyo(AnInput):
             __logger__.debug("dropping %s", self.buffer[0:6])
             self.buffer = self.buffer[6:]
 
-    def __close_connection__(self):
+    def __close_connection__(self, reason):
         try:
             self.s.close()
         except:
             pass
+        __logger__.info("Connection closed in %s", reason)
         self.s = None
 
     def __publish__(self, cmd, value):
@@ -224,7 +224,7 @@ class Onkyo(AnInput):
             self.publish({cmd_['name']+"_raw": value})
             __logger__.debug("%s: %s", cmd_['name'], cmd_['converter'].to(value))
             if cmd == 'PWR' and value == '00':
-                self.__close_connection__()
+                self.__close_connection__("PWR00")
         else:
             self.publish({cmd: value})
             __logger__.info("%s: %s", cmd, value)
