@@ -3,9 +3,14 @@ import time
 from actions import Action
 
 operators = {
-    "less than": lambda x, y: int(x) < int(y),
-    "greater than": lambda x, y: int(x) > int(y),
-    "equal to": lambda x, y: str(x) == str(y)
+    "less than": lambda x, y: float(x) < float(y),
+    "<": lambda x, y: float(x) < float(y),
+    "<=": lambda x, y: float(x) <= float(y),
+    "greater than": lambda x, y: float(x) > float(y),
+    ">": lambda x, y: float(x) > float(y),
+    ">=": lambda x, y: float(x) >= float(y),
+    "equal to": lambda x, y: str(x) == str(y),
+    "=": lambda x, y: str(x) == str(y)
 }
 
 __logger__ = logging.getLogger(("rules"))

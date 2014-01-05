@@ -137,3 +137,10 @@ class TestRuleParser(TestCase):
         parse = self.parser.parse("when my.input was less than 10 then send notification turbo", self.context)
         self.assertIsInstance(parse, ConditionalRule)
         self.assertEqual(parse.conditions[0].temporal, 'was')
+
+    def test_non_char_operator(self):
+        parse = self.parser.parse("when my.input is <= 10 then send notification turbo", self.context)
+        self.assertIsInstance(parse, ConditionalRule)
+        self.assertTrue(parse.conditions[0].operator(10, 10))
+        self.assertTrue(parse.conditions[0].operator(9.9, "10"))
+        self.assertFalse(parse.conditions[0].operator(10.1, 10))
