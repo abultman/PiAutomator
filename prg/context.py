@@ -1,13 +1,13 @@
 from Queue import Queue
 import json
 import logging
+import pickle
 import threading
 import time
 import schedule
 from graphitereporter import GraphiteReporter
 
 PREVIOUS_VALUE = "_previous_value"
-
 CHANGE_TIME = "_change_time"
 
 __logger__ = logging.getLogger("automation-context")
@@ -66,11 +66,14 @@ class AutomationContext(object):
                 return False
         if path.endswith(CHANGE_TIME) or path.endswith(PREVIOUS_VALUE):
             # don't publish calculated values
+            # deprecated, should be removed soon
             return
 
         if isinstance(values, dict):
             for key in values:
                 self.__export_data_path__(path + "." + key, values[key])
+        elif isinstance(values, Value):
+            self.__export_data_path__(path, values.value)
         elif is_number(values):
             self.reporter.send(path, values)
         elif values == True:
@@ -79,6 +82,11 @@ class AutomationContext(object):
             self.reporter.send(path, 0)
 
     def __publish_values__(self):
+        def get_value(orig):
+            if isinstance(orig, Value):
+                return orig.value
+            return orig
+
         __logger__.info("Starting central value publish thread")
         while True:
             elem = self.publish_queue.get()
@@ -93,17 +101,18 @@ class AutomationContext(object):
                 state = state[elem]
             for key in values:
                 if not key in state or not state[key] == values[key] or changed:
-                    assignable = values[key]
-                    if isinstance(assignable, Value):
-                        assignable = assignable.value
+                    assignable = get_value(values[key])
+
                     old_value = None
                     if key in state:
-                        old_value = state[key]
-                    state[key] = assignable
-                    state[key + CHANGE_TIME] = change_time
-                    state[key + PREVIOUS_VALUE] = old_value
+                        old_value = get_value(state[key])
+
+                    state[key] = Value(assignable, change_time, old_value)
+                    if key + CHANGE_TIME in state: state.pop(key + CHANGE_TIME)
+                    if key + PREVIOUS_VALUE in state: state.pop(key + PREVIOUS_VALUE)
                     __logger__.debug("setting %s %s to %s", path, key, state[key])
                     if self.trigger.qsize() == 0:
+                        __logger__.debug("Triggering due to path %s", path)
                         self.trigger.put(True)
             self.publish_queue.task_done()
 
@@ -148,7 +157,10 @@ class AutomationContext(object):
     def getValue(self, path):
         for prefix in self.prefixes.values():
             value = self._getValue(prefix + path)
-            if not value == None:
+            if isinstance(value, Value):
+                return value
+            elif not value == None:
+                # Old style, deprecated
                 change_time = self._getValue(prefix + path + CHANGE_TIME)
                 previous_value = self._getValue(prefix + path + PREVIOUS_VALUE)
                 return Value(value, change_time, previous_value)
@@ -243,7 +255,7 @@ class AutomationContext(object):
         return {}
 
 class Value(object):
-    def __init__(self, value, change_time, previous_value):
+    def __init__(self, value = None, change_time = None, previous_value = None):
         self.value = value
         self.change_time = change_time
         self.previous_value = previous_value
@@ -289,3 +301,29 @@ class Value(object):
 
     def pop(self, item, default=None):
         return self.value.pop(item, default)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return "[Value: %s, %s ,%s]" % (self.value, self.change_time, self.previous_value)
+
+
+def _jsonSupport( *args ):
+    def default( self, xObject ):
+        return { 'type': 'context.Value', 'value': xObject.__dict__ }
+
+    def objectHook( obj ):
+        if 'type' not in obj:
+            return obj
+        if obj[ 'type' ] != 'context.Value':
+            return obj
+        val = Value()
+        for key in obj['value']:
+            val.__setattr__(key, obj['value'][key])
+        return val
+
+    json.JSONEncoder.default = default
+    json._default_decoder = json.JSONDecoder(object_hook = objectHook)
+
+_jsonSupport()

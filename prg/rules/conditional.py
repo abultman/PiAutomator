@@ -18,10 +18,12 @@ class Condition(object):
         @type automation_context: context.AutomationContext
         """
         sensorValue = automation_context.getValue(self.input)
-        if sensorValue:
+        if sensorValue is not None:
             self.change_time = sensorValue.change_time
             if self.temporal == 'was':
                 sensorValue = sensorValue.previous_value
+
+        if sensorValue is not None:
             return self.operator(sensorValue, self.data['value'])
         else:
             return False
