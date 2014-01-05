@@ -221,7 +221,7 @@ class Onkyo(AnInput):
             self.s.close()
         except:
             pass
-        __logger__.info("Connection closed in %s", reason)
+        __logger__.debug("Connection closed in %s", reason)
         self.s = None
 
     def __publish__(self, cmd, value):
