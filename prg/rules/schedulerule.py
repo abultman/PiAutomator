@@ -55,6 +55,9 @@ class ScheduleRule(Rule):
     def stop(self):
         self.schedule = [schedule.cancel_job(sched) for sched in self.schedule]
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         return "actions %s" % (self.actions)
 

@@ -46,10 +46,11 @@ class RuleParser(object):
 
 
         def receiver_input_rule():
-            input = Combine(ZeroOrMore(word + ".") + word).setResultsName("input")
+            path = Combine(ZeroOrMore(word + ".") + word)
+            input = path.setResultsName("input")
 
             operator = oneOf(operators.keys()).setResultsName("operator")
-            value = word_or_sentence.setResultsName("value")
+            value = path.setResultsName("value")
             comparison = operator + value
 
             is_or_was = Word("is") | Word("was")

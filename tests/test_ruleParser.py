@@ -1,4 +1,5 @@
 from unittest import TestCase
+from context import Value
 from rules import RuleParser, operators
 from rules.conditional import ConditionalRule
 from rules.rules import RuleContext
@@ -8,10 +9,11 @@ from mock import Mock, MagicMock
 
 class TestRuleParser(TestCase):
     def setUp(self):
-        mock = Mock()
-        mock.getRuleValue = MagicMock(return_value = None)
+        self.mock = Mock()
+        self.mock.getRuleValue = MagicMock()
+        self.mock.getValue = MagicMock(return_value = Value(101))
         self.parser = RuleParser()
-        self.context = RuleContext(mock)
+        self.context = RuleContext(self.mock)
 
     def test_parse_simple_conditional(self):
         parse = self.parser.parse("when input.metric is less than 10 then turn heat up", self.context)
@@ -138,9 +140,52 @@ class TestRuleParser(TestCase):
         self.assertIsInstance(parse, ConditionalRule)
         self.assertEqual(parse.conditions[0].temporal, 'was')
 
+    def setup_get_value(self, l):
+        cur = l
+
+        def next(val):
+            name = cur[0]
+            ret = cur[1]
+            if name != val:
+                raise ValueError
+            cur.pop(0)
+            cur.pop(0)
+            if ret is None:
+                return ret
+            return Value(ret)
+
+        self.mock.getValue.side_effect = next
+
     def test_non_char_operator(self):
+
         parse = self.parser.parse("when my.input is <= 10 then send notification turbo", self.context)
         self.assertIsInstance(parse, ConditionalRule)
         self.assertTrue(parse.conditions[0].operator(10, 10))
         self.assertTrue(parse.conditions[0].operator(9.9, "10"))
         self.assertFalse(parse.conditions[0].operator(10.1, 10))
+
+        self.setup_get_value(['my.input', 10, "10", None])
+        self.assertTrue(parse.matches())
+
+        self.setup_get_value(['my.input', 10.1, "10", None])
+        self.assertFalse(parse.matches())
+
+    def test_compare_values_to_each_other(self):
+        parse = self.parser.parse("when my.input is <= other.input then send notification turbo", self.context)
+        self.setup_get_value(['my.input', 20, 'other.input', 30])
+        self.assertIsInstance(parse, ConditionalRule)
+        self.assertTrue(parse.matches())
+        self.setup_get_value(['my.input', 30, 'other.input', 1])
+        self.assertIsInstance(parse, ConditionalRule)
+        self.assertFalse(parse.matches())
+
+    def test_can_reverse_conditionals(self):
+        parse = self.parser.parse("when 10 is <= other.input then send notification turbo", self.context)
+        self.setup_get_value(['10', None, 'other.input', 30])
+        self.assertIsInstance(parse, ConditionalRule)
+        self.assertTrue(parse.matches())
+        self.setup_get_value(['10', None, 'other.input', 1])
+        self.assertIsInstance(parse, ConditionalRule)
+        self.assertFalse(parse.matches())
+
+

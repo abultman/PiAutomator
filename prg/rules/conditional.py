@@ -1,4 +1,5 @@
 import logging
+from context import Value
 from rules import operators, Rule
 
 __logger__ = logging.getLogger('conditional-rule')
@@ -13,20 +14,30 @@ class Condition(object):
         self.value = self.data['value']
         self.change_time = 0
 
+    def get_compare_value(self, automation_context, what):
+        sensorValue = automation_context.getValue(what)
+        if sensorValue is not None:
+            if self.temporal == 'was':
+                sensorValue = Value(sensorValue.previous_value, sensorValue.change_time, sensorValue.previous_value)
+        else:
+            sensorValue = Value(what,0)
+        return sensorValue
+
     def matches(self, automation_context):
         """
         @type automation_context: context.AutomationContext
         """
-        sensorValue = automation_context.getValue(self.input)
-        if sensorValue is not None:
-            self.change_time = sensorValue.change_time
-            if self.temporal == 'was':
-                sensorValue = sensorValue.previous_value
+        left_side = self.get_compare_value(automation_context, self.input)
+        right_side = self.get_compare_value(automation_context, self.value)
 
-        if sensorValue is not None:
-            return self.operator(sensorValue, self.data['value'])
+        if left_side is not None:
+            self.change_time = left_side.change_time
+            return self.operator(left_side, right_side)
         else:
             return False
+
+    def __repr__(self):
+        return self.__str__()
 
     def __str__(self):
         return "%s" % self.data
@@ -51,6 +62,9 @@ class ConditionalRule(Rule):
 
     def max_change_time(self):
         return max(condition.change_time for condition in self.conditions)
+
+    def __repr__(self):
+        return self.__str__()
 
     def __str__(self):
         return "%s %s actions %s\nconditions %s" % (
