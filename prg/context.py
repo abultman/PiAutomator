@@ -303,10 +303,11 @@ class Value(object):
         return self.value.pop(item, default)
 
     def __repr__(self):
-        return self.__str__()
+        return "[Value: %s, %s ,%s]" % (self.value, self.change_time, self.previous_value)
 
     def __str__(self):
-        return "[Value: %s, %s ,%s]" % (self.value, self.change_time, self.previous_value)
+        return str(self.value)
+
 
 
 def _jsonSupport( *args ):
@@ -327,3 +328,9 @@ def _jsonSupport( *args ):
     json._default_decoder = json.JSONDecoder(object_hook = objectHook)
 
 _jsonSupport()
+
+v1 = Value(10, time.time(), 11)
+v2 = Value(10, time.time(), 14)
+
+print str(v1)
+print str(v2)
