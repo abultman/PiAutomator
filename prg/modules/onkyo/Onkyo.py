@@ -225,16 +225,20 @@ class Onkyo(AnInput):
         self.s = None
 
     def __publish__(self, cmd, value):
-        if cmd in onkyo_commands.keys():
-            cmd_ = onkyo_commands[cmd]
-            self.publish({cmd_['name']: cmd_['converter'].to(value)})
-            self.publish({cmd_['name']+"_raw": value})
-            __logger__.debug("%s: %s", cmd_['name'], cmd_['converter'].to(value))
-            if cmd == 'PWR' and value == '00':
-                self.__close_connection__("PWR00")
-        else:
-            self.publish({cmd: value})
-            __logger__.info("%s: %s", cmd, value)
+        try:
+            if cmd in onkyo_commands.keys():
+                cmd_ = onkyo_commands[cmd]
+                self.publish({cmd_['name']: cmd_['converter'].to(value)})
+                self.publish({cmd_['name']+"_raw": value})
+                __logger__.debug("%s: %s", cmd_['name'], cmd_['converter'].to(value))
+                if cmd == 'PWR' and value == '00':
+                    self.__close_connection__("PWR00")
+            else:
+                self.publish({cmd: value})
+                __logger__.info("%s: %s", cmd, value)
+        except Exception, e:
+            __logger__.error("failed to publish %s -> %s", cmd, value)
+            __logger__.exception(e)
 
     def __process__(self, msg):
         try:
