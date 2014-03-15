@@ -89,6 +89,8 @@ class pilightDaemon(object):
         pilightthread.daemon = True
         pilightthread.start()
         if len(raw_protocols) > 0:
+            for p in raw_protocols:
+                __logger__.info("raw protocol %s will be supported", p)
             pilightthread = threading.Thread(target=self.receive_raw, name='pilight-receiver-raw')
             pilightthread.daemon = True
             pilightthread.start()
