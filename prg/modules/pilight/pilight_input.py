@@ -185,7 +185,8 @@ class pilightDaemon(object):
         __logger__.info("Configuration of pilight\n%s", config)
 
     def process_message(self, messagestr):
-        __logger__.debug(messagestr)
+        if messagestr == '\n': return
+        __logger__.debug("message: '" + messagestr + "'")
         message = json.loads(messagestr)
         if 'devices' in message:
             self.process_device_message(message)
