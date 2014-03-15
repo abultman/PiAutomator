@@ -70,13 +70,13 @@ class pilight_input(AnInput):
                 protocol = data['protocol']
                 print "protocol: " + protocol
                 id = wrapped_data.getsetting('id', 'noid')
-                print "id: " + id
+                print "id: %s" %( id)
                 unit = wrapped_data.getsetting('unit', 'nounit')
-                print "unti: " + unit
+                print "unti: %s" %( unit)
                 publish_key = 'pilight.raw.%s.%s.%s' % (protocol, id, unit)
                 print publish_key
                 values = self.__get_values__(data['code'])
-                self.publish(values, publish_key)
+                #self.publish(values, publish_key)
             except Exception, e:
                 print e
 
