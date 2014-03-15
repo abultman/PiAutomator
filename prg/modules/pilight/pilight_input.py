@@ -76,7 +76,7 @@ class pilight_input(AnInput):
                 publish_key = 'pilight.raw.%s.%s.%s' % (protocol, id, unit)
                 print publish_key
                 values = self.__get_values__(data['code'])
-                #self.publish(values, publish_key)
+                self.publish(values, publish_key)
             except Exception, e:
                 print e
 

@@ -50,7 +50,7 @@ class AutomationContext(object):
         self.config = config
         self.receivers = None
         self.rule_context = None
-        self.publish_queue = Queue()
+        self.publish_queue = Queue(100)
         self.reporter = GraphiteReporter(config)
         self.values = self.load()
 
@@ -81,6 +81,33 @@ class AutomationContext(object):
         elif values == False:
             self.reporter.send(path, 0)
 
+    def publishOne(self, elem, get_value):
+        path = elem[0]
+        values = elem[1]
+        changed = elem[2]
+        change_time = time.time()
+        state = self.values
+        for elem in path.split("."):
+            if not elem in state:
+                state[elem] = {}
+            state = state[elem]
+        for key in values:
+            if not key in state or not state[key] == values[key] or changed:
+                assignable = get_value(values[key])
+
+                old_value = None
+                if key in state:
+                    old_value = get_value(state[key])
+
+                state[key] = Value(assignable, change_time, old_value)
+                if key + CHANGE_TIME in state: state.pop(key + CHANGE_TIME)
+                if key + PREVIOUS_VALUE in state: state.pop(key + PREVIOUS_VALUE)
+                __logger__.debug("setting %s %s to %s", path, key, state[key])
+                if self.trigger.qsize() == 0:
+                    __logger__.debug("Triggering due to path %s", path)
+                    self.trigger.put(True)
+        self.publish_queue.task_done()
+
     def __publish_values__(self):
         def get_value(orig):
             if isinstance(orig, Value):
@@ -89,32 +116,20 @@ class AutomationContext(object):
 
         __logger__.info("Starting central value publish thread")
         while True:
-            elem = self.publish_queue.get()
-            path = elem[0]
-            values = elem[1]
-            changed = elem[2]
-            change_time = time.time()
-            state = self.values
-            for elem in path.split("."):
-                if not elem in state:
-                    state[elem] = {}
-                state = state[elem]
-            for key in values:
-                if not key in state or not state[key] == values[key] or changed:
-                    assignable = get_value(values[key])
-
-                    old_value = None
-                    if key in state:
-                        old_value = get_value(state[key])
-
-                    state[key] = Value(assignable, change_time, old_value)
-                    if key + CHANGE_TIME in state: state.pop(key + CHANGE_TIME)
-                    if key + PREVIOUS_VALUE in state: state.pop(key + PREVIOUS_VALUE)
-                    __logger__.debug("setting %s %s to %s", path, key, state[key])
-                    if self.trigger.qsize() == 0:
-                        __logger__.debug("Triggering due to path %s", path)
-                        self.trigger.put(True)
-            self.publish_queue.task_done()
+            elems = []
+            elems.append(self.publish_queue.get())
+            size = 0
+            maxIt = self.publish_queue.qsize()
+            no_exception = True
+            while size < maxIt and no_exception:
+                try:
+                    elems.append(self.publish_queue.get_nowait())
+                    size = size + 1
+                except Queue.Empty, e:
+                    no_exception = False
+            for elem in elems:
+                self.publishOne(elem, get_value)
+            time.sleep(0.001)
 
     def __rule_eval__(self):
         while True:
