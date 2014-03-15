@@ -21,7 +21,8 @@ def init_module(config):
     """
     pilightDaemon(
         config.get_setting(['pilight', 'host'], '127.0.0.1'),
-        config.get_setting(['pilight', 'port'], 5000))
+        config.get_setting(['pilight', 'port'], 5000),
+        config.get_setting(['pilight', 'rawprotocols'], []))
 
 class pilight_input(AnInput):
     def __init__(self,  name, context, settings):
@@ -64,34 +65,33 @@ class pilight_input(AnInput):
         print data
         if 'protocol' in data and 'code' in data:
             try:
-                print "wrapping data"
                 wrapped_data = LocalSettings(data['code'])
-                print "wrapped data"
                 protocol = data['protocol']
-                print "protocol: " + protocol
                 id = wrapped_data.getsetting('id', 'noid')
-                print "id: %s" %( id)
                 unit = wrapped_data.getsetting('unit', 'nounit')
-                print "unti: %s" %( unit)
                 publish_key = 'pilight.raw.%s.%s.%s' % (protocol, id, unit)
-                print publish_key
                 values = self.__get_values__(data['code'])
                 self.publish(values, publish_key)
             except Exception, e:
                 print e
 
 class pilightDaemon(object):
-    def __init__(self, host, port):
+    def __init__(self, host, port, raw_protocols):
+        """
+        @type raw_protocols list
+        """
         self.host = host
         self.port = port
         self.current_buffer = ""
         self.current_buffer_raw = ""
+        self.raw_protocols = raw_protocols
         pilightthread = threading.Thread(target=self.receive, name='pilight-receiver')
         pilightthread.daemon = True
         pilightthread.start()
-        pilightthread = threading.Thread(target=self.receive_raw, name='pilight-receiver-raw')
-        pilightthread.daemon = True
-        pilightthread.start()
+        if len(raw_protocols) > 0:
+            pilightthread = threading.Thread(target=self.receive_raw, name='pilight-receiver-raw')
+            pilightthread.daemon = True
+            pilightthread.start()
 
     def connect_raw(self):
         try:
@@ -188,7 +188,8 @@ class pilightDaemon(object):
                     self.send_to_all(message, key)
 
     def process_raw_message(self, message):
-        self.send_to_all(message, 'raw')
+        if 'protocol' in message and message.protocol in self.raw_protocols:
+            self.send_to_all(message, 'raw')
 
     def process_config_message(self, message):
         config = message['config']

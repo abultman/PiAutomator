@@ -343,9 +343,3 @@ def _jsonSupport( *args ):
     json._default_decoder = json.JSONDecoder(object_hook = objectHook)
 
 _jsonSupport()
-
-v1 = Value(10, time.time(), 11)
-v2 = Value(10, time.time(), 14)
-
-print str(v1)
-print str(v2)
