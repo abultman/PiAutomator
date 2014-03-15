@@ -27,13 +27,16 @@ class Condition(object):
         """
         @type automation_context: context.AutomationContext
         """
-        left_side = self.get_compare_value(automation_context, self.input)
-        right_side = self.get_compare_value(automation_context, self.value)
+        try :
+            left_side = self.get_compare_value(automation_context, self.input)
+            right_side = self.get_compare_value(automation_context, self.value)
 
-        if left_side is not None:
-            self.change_time = left_side.change_time
-            return self.operator(left_side, right_side)
-        else:
+            if left_side is not None:
+                self.change_time = left_side.change_time
+                return self.operator(left_side, right_side)
+            else:
+                return False
+        except:
             return False
 
     def __repr__(self):

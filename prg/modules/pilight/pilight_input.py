@@ -61,14 +61,24 @@ class pilight_input(AnInput):
 
     def update_raw(self, data):
         # {"code":{"id":11449862,"unit":0,"state":"up"},"origin":"receiver","protocol":"archtech_screens","repeats":2}
+        print data
         if 'protocol' in data and 'code' in data:
-            wrapped_data = LocalSettings(data['code'])
-            protocol = data['protocol']
-            id = wrapped_data.getsetting('id', 'noid')
-            unit = wrapped_data.getsetting('unit', 'nounit')
-            publish_key = 'pilight.raw.%s.%s.%s' % (protocol, id, unit)
-            values = self.__get_values__(data['code'])
-            self.publish(values, publish_key)
+            try:
+                print "wrapping data"
+                wrapped_data = LocalSettings(data['code'])
+                print "wrapped data"
+                protocol = data['protocol']
+                print "protocol: " + protocol
+                id = wrapped_data.getsetting('id', 'noid')
+                print "id: " + id
+                unit = wrapped_data.getsetting('unit', 'nounit')
+                print "unti: " + unit
+                publish_key = 'pilight.raw.%s.%s.%s' % (protocol, id, unit)
+                print publish_key
+                values = self.__get_values__(data['code'])
+                self.publish(values, publish_key)
+            except Exception, e:
+                print e
 
 class pilightDaemon(object):
     def __init__(self, host, port):
