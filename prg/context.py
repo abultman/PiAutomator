@@ -100,8 +100,6 @@ class AutomationContext(object):
                     old_value = get_value(state[key])
 
                 state[key] = Value(assignable, change_time, old_value)
-                if key + CHANGE_TIME in state: state.pop(key + CHANGE_TIME)
-                if key + PREVIOUS_VALUE in state: state.pop(key + PREVIOUS_VALUE)
                 __logger__.debug("setting %s %s to %s", path, key, state[key])
                 if self.trigger.qsize() == 0:
                     __logger__.debug("Triggering due to path %s", path)
@@ -127,6 +125,7 @@ class AutomationContext(object):
                     size = size + 1
                 except Queue.Empty, e:
                     no_exception = False
+            __logger__.debug('publishing %d items', size)
             for elem in elems:
                 self.publishOne(elem, get_value)
             time.sleep(0.001)

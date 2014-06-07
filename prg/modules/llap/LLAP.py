@@ -51,6 +51,7 @@ def init(config):
 
     llap_receiver = LLAPDaemon(
         config.get_setting(['llap','device'], '/dev/ttyAMA0'),
+        config.get_setting(['llap','baud-rate'], 9600),
         config.get_setting(['llap','print-debug-receive'], False),
         config.get_setting(['llap','print-debug-send'], False)
     )
@@ -217,9 +218,9 @@ class LLAP(AnInput):
         return self.i_been_waiting_for(self.check_interval)
 
 class LLAPDaemon(object):
-    def __init__(self, device, receive_debug, send_debug):
+    def __init__(self, device, baud_rate, receive_debug, send_debug):
         self.p = re.compile('a[A-Z][A-Z][A-Z0-9.-]{9,}.*')
-        self.ser = serial.Serial(device, 9600)
+        self.ser = serial.Serial(device, baud_rate)
         self.receive_debug = receive_debug
         self.send_debug = send_debug
         self.current_buffer = ""
