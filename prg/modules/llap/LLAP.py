@@ -31,8 +31,27 @@ llap_commands = {
     'BATT': ['batterylevel', float],
     'STARTED': ['lowbattery', _false],
     'LVAL': ['lightlevel', float],
+    'LVA0': ['lightlevel', float],
+    'LVA1': ['lightlevel', float],
+    'LVA2': ['lightlevel', float],
+    'LVA3': ['lightlevel', float],
+    'LVA4': ['lightlevel', float],
+    'LVA5': ['lightlevel', float],
+    'LVA6': ['lightlevel', float],
     'TEMP': ['temperature', float],
+    'TMP0': ['temperature', float],
+    'TMP1': ['temperature', float],
+    'TMP2': ['temperature', float],
+    'TMP3': ['temperature', float],
+    'TMP4': ['temperature', float],
+    'TMP5': ['temperature', float],
+    'TMP6': ['temperature', float],
+    'TMP7': ['temperature', float],
     'TMPA': ['temperature', float],
+    'KPA0': ['pressure', float],
+    'KPA1': ['pressure', float],
+    'KPA2': ['pressure', float],
+    'MOTION': ['motion', str],
     'ANA': ['analog', int],
     'BUTTON': ['button', str],
 }
@@ -134,11 +153,11 @@ class LLAP(AnInput):
                     self.send("BATT")
                     self.send("SLEEP" + ("%d%s" % (self.cycle_time, self.cycle_period)).rjust(4, '0'))
 
-    def process_incomming(self, sentcommand):
+    def process_incoming(self, sentcommand):
         for command in sorted(llap_commands, key=lambda x: len(x), reverse=True):
             if sentcommand.startswith(command):
                 value = sentcommand[len(command):]
-                key = llap_commands[command][0]
+                key = self.settings.getsetting(command, llap_commands[command][0])
                 converter = llap_commands[command][1]
                 self.publish({key: converter(value)})
                 break
@@ -156,7 +175,7 @@ class LLAP(AnInput):
         if not self.started: return
         __logger__.debug("update: " + sentcommand)
         self.cycle_hello(sentcommand)
-        self.process_incomming(sentcommand)
+        self.process_incoming(sentcommand)
         self.process_queue(sentcommand)
 
     def send(self, message, wait_for_it = True):
