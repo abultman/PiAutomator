@@ -157,9 +157,9 @@ class LLAP(AnInput):
         for command in sorted(llap_commands, key=lambda x: len(x), reverse=True):
             if sentcommand.startswith(command):
                 value = sentcommand[len(command):]
-                key = self.settings.getsetting(command, llap_commands[command][0])
+                key = self.settings.getsetting(command + ".key", llap_commands[command][0])
                 converter = llap_commands[command][1]
-                self.publish({key: converter(value)})
+                self.publish({key: converter(value)}, self.settings.getsetting(command + ".name", self.name))
                 break
 
     def process_queue(self, sentcommand = "YEAHWHATEVER"):
