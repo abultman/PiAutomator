@@ -58,7 +58,10 @@ class ConditionalRule(Rule):
         self.always_fire = 'always_fire_rule' in data
 
     def matches(self):
-        return all(condition.matches(self.rule_context.automation_context) for condition in self.conditions)
+        try:
+            return all(condition.matches(self.rule_context.automation_context) for condition in self.conditions)
+        except Exception, e:
+            return False
 
     def should_rule_fire(self):
         return super(ConditionalRule, self).should_rule_fire() or self.fire_always()
