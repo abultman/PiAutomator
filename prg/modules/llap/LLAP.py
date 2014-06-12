@@ -355,6 +355,9 @@ class LLAPDaemon(object):
         elif device in lllap_sensors:
             llap_sensor = lllap_sensors[device]
             llap_sensor.update(command)
+        if self.receive_debug:
+            self.debug_file.write('\n')
+            self.debug_file.flush()
 
     def retry_commands(self):
         while True:
