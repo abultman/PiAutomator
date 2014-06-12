@@ -238,11 +238,14 @@ class AutomationContext(object):
         self.save()
         __logger__.info("Automation stopped")
 
+    def __state_file__(self):
+        return "%s/conf/state.json" % self.config.get_basedir()
+
     def save(self):
         if self.config.get_setting(['automator', 'save-state'], True):
             __lock__.acquire()
             try:
-                filename = "%s/conf/state.json" % self.config.get_basedir()
+                filename = self.__state_file__()
                 with open(filename, 'w') as outfile:
                     json.dump(self.values, outfile, indent=4)
                 __logger__.debug("Stated saved")
@@ -252,7 +255,7 @@ class AutomationContext(object):
     def load(self):
         if self.config.get_setting(['automator', 'save-state'], True):
             try:
-                filename = "%s/conf/state.json" % self.config.get_basedir()
+                filename = self.__state_file__()
                 with open(filename, 'r') as outfile:
                     values = json.load(outfile)
                     __logger__.info("Stated loaded")
