@@ -80,6 +80,10 @@ class AutomationContext(object):
             self.reporter.send(path, 1)
         elif values == False:
             self.reporter.send(path, 0)
+        elif values == "ON":
+            self.reporter.send(path, 1)
+        elif values == "OFF":
+            self.reporter.send(path, 0)
 
     def publishOne(self, elem, get_value):
         path = elem[0]
