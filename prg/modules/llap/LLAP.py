@@ -30,6 +30,7 @@ llap_commands = {
     'BATTLOW': ['lowbattery', _true],
     'BATT': ['batterylevel', float],
     'STARTED': ['lowbattery', _false],
+    'RAIN': ['rain', float],
     'LVAL': ['lightlevel', float],
     'LVA0': ['lightlevel', float],
     'LVA1': ['lightlevel', float],
@@ -159,7 +160,10 @@ class LLAP(AnInput):
                 value = sentcommand[len(command):]
                 key = self.settings.getsetting(command + ".key", llap_commands[command][0])
                 converter = llap_commands[command][1]
-                self.publish({key: converter(value)}, self.settings.getsetting(command + ".name", self.name))
+                try:
+                    self.publish({key: converter(value)}, self.settings.getsetting(command + ".name", self.name))
+                except ValueError:
+                    __logger__.warn("unable to store value %s, %s", key, value)
                 break
 
     def process_queue(self, sentcommand = "YEAHWHATEVER"):
