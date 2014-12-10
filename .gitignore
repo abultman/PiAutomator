@@ -1,3 +1,4 @@
+piautomatorenv/
 logs/
 conf/config.yaml
 conf/state.json
@@ -5,3 +6,5 @@ conf/state.json
 .idea/
 .*
 report
+
+*.*___jb_bak___

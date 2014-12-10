@@ -1,0 +1,7 @@
+PyYAML
+pyparsing
+graphitesend
+pyserial
+pytz
+astral
+schedule

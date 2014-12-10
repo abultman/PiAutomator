@@ -12,7 +12,7 @@
  
 # Change the next 3 lines to suit where you install your script and what you want to call it
 DIR=/opt/homeautomation
-DAEMON=$DIR/bin/start-automator.py
+DAEMON=$DIR/bin/start-automator.sh
 DAEMON_NAME=piautomator
  
 # This next line determines what user the script runs as.

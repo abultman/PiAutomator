@@ -18,12 +18,13 @@ def load_class(elem, config, scope):
         __logger__.info("Loading class of type %s as %s", elem, scope)
         mod = __load_module__(fullname)
         if mod is None:
-                mod = __load_module__('modules.' + elem)
+            mod = __load_module__('modules.' + elem)
         if mod is None:
             parent = '.'.join(('modules.' + elem).split('.')[:-1])
             mod = __load_module__(parent, elem)
         if mod is None:
-            raise ValueError("%s not found in scope %s" % (elem, scope))
+            error = "%s not found in scope %s" % (elem, scope)
+            raise ValueError(error)
         required_class = __get_class__(elem, mod, scope)
         __myclasses__[fullname] = required_class
         __init_module__(config, elem, mod, scope)
@@ -45,13 +46,16 @@ def __load_module__(name, fromname = None):
 
     fromname = fromname.split(".")[-1]
     try:
+        __logger__.info("loading %s from %s" %(name, fromname))
         return __import__(name, globals=globals(), fromlist=[fromname])
-    except:
+    except Exception, exception:
+        __logger__.error(exception)
         return None
 
 
 def __init_module__(config, elem, mod, scope):
     if ('modules.' in mod.__package__):
+        __logger__.info("Loading parent")
         parent = __load_module__(mod.__package__)
         if parent is not None and hasattr(parent, INIT_MODULE) and parent not in __inited__:
             __logger__.info("Initializing parent of %s" % elem)
