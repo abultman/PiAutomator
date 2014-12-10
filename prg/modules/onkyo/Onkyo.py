@@ -240,6 +240,7 @@ class Onkyo(AnInput):
         except Exception, e:
             __logger__.error("failed to publish %s -> %s", cmd, value)
             __logger__.exception(e)
+            pass
 
     def __process__(self, msg):
         try:

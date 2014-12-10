@@ -10,7 +10,9 @@ operators = {
     ">": lambda x, y: float(x) > float(y),
     ">=": lambda x, y: float(x) >= float(y),
     "equal to": lambda x, y: str(x) == str(y),
-    "=": lambda x, y: str(x) == str(y)
+    "not equal to": lambda x, y: str(x) != str(y),
+    "=": lambda x, y: str(x) == str(y),
+    "!=": lambda x, y: str(x) != str(y)
 }
 
 __logger__ = logging.getLogger(("rules"))
