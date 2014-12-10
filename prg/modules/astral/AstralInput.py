@@ -4,8 +4,6 @@ from astral import Astral
 import pytz
 import schedule
 
-
-
 def init(config):
     pass
 
