@@ -20,13 +20,13 @@ DAEMON_NAME=piautomator
 DAEMON_USER=www-data
  
 # The process ID of the script when it runs is stored here:
-PIDFILE=/var/run/$DAEMON_NAME.pid
+export PIDFILE=/var/run/$DAEMON_NAME.pid
  
 . /lib/lsb/init-functions
  
 do_start () {
     log_daemon_msg "Starting system $DAEMON_NAME daemon"
-    start-stop-daemon --start --background --pidfile $PIDFILE --make-pidfile --user $DAEMON_USER --startas $DAEMON
+    start-stop-daemon --start --background --pidfile $PIDFILE --user $DAEMON_USER --startas $DAEMON > $DIR/logs/stdout.log 2>&1
     log_end_msg $?
 }
 do_stop () {
