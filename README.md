@@ -47,14 +47,14 @@ take a look at the included config-example.yaml on what is possible.
 
 To get started:
 
-1. Install the required python libs.
+1. Install the required tools -> bin/install-pi.sh or bin/install-other.sh the pi install also install wiringpi and python-dev
 2. Create a config.yaml in conf/ with your settings -> [example](https://github.com/abultman/PiAutomator/blob/master/conf/config-example.yaml "example config")
-3. run bin/bin/start-automator.py
+3. run bin/bin/start-automator.sh
 
 
 Required libs
 -------------
-A couple of python modules were used in the writing of this software. You should install then too:
+A couple of python modules were used in the writing of this software. These libs are installed into a virtualenv for you when you run the installation or startup scripts
 
 * PyYAML
 * pyparsing
@@ -62,19 +62,6 @@ A couple of python modules were used in the writing of this software. You should
 * graphitesend -> If you want to enable graphite data sending
 * wiringpi2 -> If you're using the direct KAKU controller
 * pyserial -> If you want to use the LLAP receivers
-
-to get them all:
-
-```
-sudo pip install PyYAML pyparsing schedule graphitesend  pyserial wiringpi2
-```
-
-Note that wiringpi only works on raspberry pi and is only needed for pin access. So if you have no pins, don't
-install wiringpi2:
-
-```
-sudo pip install PyYAML pyparsing schedule graphitesend  pyserial
-```
 
 Rules
 -----
