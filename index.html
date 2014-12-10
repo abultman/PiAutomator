@@ -31,7 +31,7 @@
       </header>
       <section>
         <h1>
-<a name="pi-automator" class="anchor" href="#pi-automator"><span class="octicon octicon-link"></span></a>Pi-Automator</h1>
+<a id="pi-automator" class="anchor" href="#pi-automator" aria-hidden="true"><span class="octicon octicon-link"></span></a>Pi-Automator</h1>
 
 <p>Simple Python lib that allows you to read values from sensors etc. on the Pi and then trigger receivers into certain states.</p>
 
@@ -48,43 +48,53 @@ types of receivers should also be able to get a bit more variation, although I'l
 <li>pilight events</li>
 <li>DHT22</li>
 <li>Onkyo amps</li>
-</ul><p>sends:</p>
+</ul>
+
+<p>sends:</p>
 
 <ul>
 <li>pilight events (turn on lights etc)</li>
 <li>old protocol klik aan klik uit</li>
 <li>Prowl (ios notifs)</li>
 <li>Any cmd line</li>
-</ul><p>Open to suggestions :)</p>
+</ul>
+
+<p>Open to suggestions :)</p>
 
 <h2>
-<a name="general-concepts" class="anchor" href="#general-concepts"><span class="octicon octicon-link"></span></a>General Concepts</h2>
+<a id="general-concepts" class="anchor" href="#general-concepts" aria-hidden="true"><span class="octicon octicon-link"></span></a>General Concepts</h2>
 
 <p>Configures a set of rules that</p>
 
 <ol>
 <li>Take input from configured  receivers (like the DHT22)</li>
 <li>Take a fixed schedule</li>
-</ol><p>and then execute (a series of) actions when input meets criteria.</p>
+</ol>
+
+<p>and then execute (a series of) actions when input meets criteria.</p>
 
 <p>An example of a rule could be:</p>
 
 <ul>
 <li>when kitchen.temperature is greater than 25 then turn airconditioning on</li>
 <li>every day at 20:00 turn outsidelights on</li>
-</ul><p>take a look at the included config-example.yaml on what is possible.</p>
+</ul>
+
+<p>take a look at the included config-example.yaml on what is possible.</p>
 
 <p>To get started:</p>
 
 <ol>
-<li>Install the required python libs.</li>
+<li>Install the required tools -&gt; bin/install-pi.sh or bin/install-other.sh the pi install also install wiringpi and python-dev</li>
 <li>Create a config.yaml in conf/ with your settings -&gt; <a href="https://github.com/abultman/PiAutomator/blob/master/conf/config-example.yaml" title="example config">example</a>
 </li>
-<li>run bin/bin/start-automator.py</li>
-</ol><h2>
-<a name="required-libs" class="anchor" href="#required-libs"><span class="octicon octicon-link"></span></a>Required libs</h2>
+<li>run bin/bin/start-automator.sh</li>
+</ol>
 
-<p>A couple of python modules were used in the writing of this software. You should install then too:</p>
+<h2>
+<a id="required-libs" class="anchor" href="#required-libs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Required libs</h2>
+
+<p>A couple of python modules were used in the writing of this software. These libs are installed into a virtualenv for you when you run the installation or startup scripts</p>
 
 <ul>
 <li>PyYAML</li>
@@ -93,27 +103,20 @@ types of receivers should also be able to get a bit more variation, although I'l
 <li>graphitesend -&gt; If you want to enable graphite data sending</li>
 <li>wiringpi2 -&gt; If you're using the direct KAKU controller</li>
 <li>pyserial -&gt; If you want to use the LLAP receivers</li>
-</ul><p>to get them all:</p>
-
-<pre><code>sudo pip install PyYAML pyparsing schedule graphitesend  pyserial wiringpi2
-</code></pre>
-
-<p>Note that wiringpi only works on raspberry pi and is only needed for pin access. So if you have no pins, don't
-install wiringpi2:</p>
-
-<pre><code>sudo pip install PyYAML pyparsing schedule graphitesend  pyserial
-</code></pre>
+</ul>
 
 <h2>
-<a name="rules" class="anchor" href="#rules"><span class="octicon octicon-link"></span></a>Rules</h2>
+<a id="rules" class="anchor" href="#rules" aria-hidden="true"><span class="octicon octicon-link"></span></a>Rules</h2>
 
 <p>Rules are used to make stuff happen in PiAutomator. There are two kinds of rules currently supported</p>
 
 <ol>
 <li>Schedule rules</li>
 <li>Conditional rules</li>
-</ol><h3>
-<a name="schedule-rules" class="anchor" href="#schedule-rules"><span class="octicon octicon-link"></span></a>Schedule rules</h3>
+</ol>
+
+<h3>
+<a id="schedule-rules" class="anchor" href="#schedule-rules" aria-hidden="true"><span class="octicon octicon-link"></span></a>Schedule rules</h3>
 
 <p>Schedule rules make something happen on set times during the day/week/hour</p>
 
@@ -123,7 +126,7 @@ install wiringpi2:</p>
 </code></pre>
 
 <h4>
-<a name="singular-rules" class="anchor" href="#singular-rules"><span class="octicon octicon-link"></span></a>singular rules:</h4>
+<a id="singular-rules" class="anchor" href="#singular-rules" aria-hidden="true"><span class="octicon octicon-link"></span></a>singular rules:</h4>
 
 <pre><code>every &lt;unit&gt; &lt;at optional_time&gt; &lt;verb&gt; &lt;receiver&gt; &lt;state&gt;
 
@@ -144,7 +147,7 @@ every weekday at 10:30 turn lights on
 </code></pre>
 
 <h4>
-<a name="plural-rules" class="anchor" href="#plural-rules"><span class="octicon octicon-link"></span></a>plural rules</h4>
+<a id="plural-rules" class="anchor" href="#plural-rules" aria-hidden="true"><span class="octicon octicon-link"></span></a>plural rules</h4>
 
 <p>like singular but with:</p>
 
@@ -159,7 +162,7 @@ every 2 days at 10:30 turn lights on
 </code></pre>
 
 <h4>
-<a name="day-rules" class="anchor" href="#day-rules"><span class="octicon octicon-link"></span></a>day rules</h4>
+<a id="day-rules" class="anchor" href="#day-rules" aria-hidden="true"><span class="octicon octicon-link"></span></a>day rules</h4>
 
 <p>allows firing on specific days of the week</p>
 
@@ -175,7 +178,7 @@ every monday and tuesday and friday at 10:30 turn lights on
 </code></pre>
 
 <h4>
-<a name="actions" class="anchor" href="#actions"><span class="octicon octicon-link"></span></a>actions</h4>
+<a id="actions" class="anchor" href="#actions" aria-hidden="true"><span class="octicon octicon-link"></span></a>actions</h4>
 
 <p>In the examples above only a single action was performed every time a schedule matched. You can
 execute multiple actions on a single schedule simply by defining more then one separated by 'and'</p>
@@ -184,7 +187,7 @@ execute multiple actions on a single schedule simply by defining more then one s
 </code></pre>
 
 <h3>
-<a name="conditional-rules" class="anchor" href="#conditional-rules"><span class="octicon octicon-link"></span></a>Conditional rules</h3>
+<a id="conditional-rules" class="anchor" href="#conditional-rules" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conditional rules</h3>
 
 <p>Conditional rules fire based on certain conditions being met. All conditional rules operate on the AutomationContext
 which stores information about input states, rule states and receiver states. A rule condition can operate on all these.
@@ -204,7 +207,7 @@ when bathroom.humidity is greater than 60 then turn homefan on
 </code></pre>
 
 <h4>
-<a name="value-paths" class="anchor" href="#value-paths"><span class="octicon octicon-link"></span></a>value paths</h4>
+<a id="value-paths" class="anchor" href="#value-paths" aria-hidden="true"><span class="octicon octicon-link"></span></a>value paths</h4>
 
 <p>Every input, rule and receiver in PiAutomator reports to the AutomationContext with values. If values change, a
 reevaluation of all conditional rules is triggered.</p>
@@ -216,7 +219,9 @@ to make sure there are no collisions:</p>
 <li>input</li>
 <li>rule</li>
 <li>receiver</li>
-</ul><p>when writing a rule with a value path, the context will always first try to find the value using the exact supplied path
+</ul>
+
+<p>when writing a rule with a value path, the context will always first try to find the value using the exact supplied path
 when that cannot be found, it will try to find it in one of the predefined name spaces. You can look in to the dumped
 state from the program if you're unsure about the path.</p>
 
@@ -230,13 +235,13 @@ value, afterwards it will also look for <em>input.bathroom.humidity</em> and <em
 something or it's options are exhausted.</p>
 
 <h2>
-<a name="graphite" class="anchor" href="#graphite"><span class="octicon octicon-link"></span></a>Graphite</h2>
+<a id="graphite" class="anchor" href="#graphite" aria-hidden="true"><span class="octicon octicon-link"></span></a>Graphite</h2>
 
 <p>Automatically sends collected sensor data to Graphite so you can keep an eye on your data.
 I used <a href="https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphite.sh">https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphite.sh</a> to quickly get graphite on the pi.</p>
 
 <h2>
-<a name="pilight" class="anchor" href="#pilight"><span class="octicon octicon-link"></span></a>pilight</h2>
+<a id="pilight" class="anchor" href="#pilight" aria-hidden="true"><span class="octicon octicon-link"></span></a>pilight</h2>
 
 <p>PiAutomator supports adding pilight as both inputs and receivers. pilight can read the DHT22 all by itself, should you not want to, you can config it directly.</p>
 
@@ -244,7 +249,7 @@ I used <a href="https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphi
 
 <pre><code>  outsidelights:
     translate-up-down: true # If using old style KAKY will translate rule action on/off to receiver up/down
-    type: PiLight
+    type: pilight
     location: frontgarden  # Location from pilight config
     device: lights  # device from pilight config
 </code></pre>
@@ -252,7 +257,7 @@ I used <a href="https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphi
 <p>example of specific pilight input:</p>
 
 <pre><code>   bathroom:
-     type: PiLight
+     type: pilight
      location: bathroom  # location from pilight config
      device: h_t_sensor  # device from pilight config
      scale: 0.1  # Optional scale you can add to receivers returning numbers (works for all receivers)
@@ -264,7 +269,7 @@ I used <a href="https://github.com/ghoulmann/rpi-graphite/blob/master/rpi-graphi
 <p>you van also add all pilight input to the mix:</p>
 
 <pre><code>   all-pilight:
-     type: PiLight
+     type: pilight
      location: all
      device: all
 
@@ -291,24 +296,28 @@ also, it doesn't to state checks, so you'll get the events regardless.</p>
 <p><a href="http://www.pilight.org/">http://www.pilight.org/</a></p>
 
 <h2>
-<a name="llap" class="anchor" href="#llap"><span class="octicon octicon-link"></span></a>LLAP</h2>
+<a id="llap" class="anchor" href="#llap" aria-hidden="true"><span class="octicon octicon-link"></span></a>LLAP</h2>
 
 <p>PiAutomator support reading (and only readying currently) sensor data from LLAP compatible serial input devices. This is mainly usefull for remote sensors setting up a wireless network.</p>
 
 <ul>
 <li>Basically, setup your Pi with a wireless receiver of somekind, I use the slice of radio (<a href="http://shop.ciseco.co.uk/slice-of-radio-wireless-rf-transciever-for-the-raspberry-pi/">http://shop.ciseco.co.uk/slice-of-radio-wireless-rf-transciever-for-the-raspberry-pi/</a>)</li>
 <li>Use other devices to transmit on the correct frequency (for instance using something like <a href="http://shop.ciseco.co.uk/xrf-wireless-rf-radio-uart-rs232-serial-data-module-xbee-shape-arduino-pic-etc/">http://shop.ciseco.co.uk/xrf-wireless-rf-radio-uart-rs232-serial-data-module-xbee-shape-arduino-pic-etc/</a>)</li>
-</ul><p>And set the remote up to send LLAP compatible data.</p>
+</ul>
+
+<p>And set the remote up to send LLAP compatible data.</p>
 
 <ul>
 <li><a href="http://openmicros.org/index.php/articles/85-llap-lightweight-local-automation-protocol/101-llap-starter">http://openmicros.org/index.php/articles/85-llap-lightweight-local-automation-protocol/101-llap-starter</a></li>
 <li><a href="http://openmicros.org/index.php/articles/85-llap-lightweight-local-automation-protocol/112-llap">http://openmicros.org/index.php/articles/85-llap-lightweight-local-automation-protocol/112-llap</a></li>
 <li>Example: <a href="http://www.seanlandsman.com/2013/02/the-raspberry-pi-and-wireless-rf-xrf.html">http://www.seanlandsman.com/2013/02/the-raspberry-pi-and-wireless-rf-xrf.html</a>
 </li>
-</ul><p>then add a LLAP receiver per device you have installed:</p>
+</ul>
+
+<p>then add a LLAP receiver per device you have installed:</p>
 
 <pre><code>  outside1:
-    type: LLAP
+    type: llap
     device-id: AA
 </code></pre>
 
@@ -331,7 +340,7 @@ also, it doesn't to state checks, so you'll get the events regardless.</p>
 </code></pre>
 
 <h2>
-<a name="dht22---direct" class="anchor" href="#dht22---direct"><span class="octicon octicon-link"></span></a>DHT22 - Direct</h2>
+<a id="dht22---direct" class="anchor" href="#dht22---direct" aria-hidden="true"><span class="octicon octicon-link"></span></a>DHT22 - Direct</h2>
 
 <p><em>NOTE:</em> You don't have to do anything here if you're not using the direct access DHT sensor receiver</p>
 
@@ -352,7 +361,7 @@ also, it doesn't to state checks, so you'll get the events regardless.</p>
 <p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 
 <h2>
-<a name="stubs" class="anchor" href="#stubs"><span class="octicon octicon-link"></span></a>Stubs</h2>
+<a id="stubs" class="anchor" href="#stubs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Stubs</h2>
 
 <p>The project contains a couple of stubs to allow for development/testing on other machines than the pi</p>
 
@@ -363,8 +372,10 @@ also, it doesn't to state checks, so you'll get the events regardless.</p>
 basically noops all used wiringpi2 methods. Needed in order to run the python version of the KlikAanKlikUitReceivef</li>
 <li>/stubs/dhtreader.py
 For the DHT22 input. Returns random numbers between 10 and 25 for temperature and random numbers between 45 and 95 for humidity (full ints)</li>
-</ul><h2>
-<a name="legal" class="anchor" href="#legal"><span class="octicon octicon-link"></span></a>Legal</h2>
+</ul>
+
+<h2>
+<a id="legal" class="anchor" href="#legal" aria-hidden="true"><span class="octicon octicon-link"></span></a>Legal</h2>
 
 <p>Distrubuted under Apache 2.0 license (see LICENSE.txt)</p>
       </section>
