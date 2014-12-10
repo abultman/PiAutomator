@@ -4,6 +4,7 @@ import logging
 import pickle
 import threading
 import time
+import functools
 import schedule
 from graphitereporter import GraphiteReporter
 
@@ -91,13 +92,14 @@ class AutomationContext(object):
         changed = elem[2]
         change_time = time.time()
         state = self.values
-        for elem in path.split("."):
-            if not elem in state:
-                state[elem] = {}
-            state = state[elem]
+        for item in path.split("."):
+            if not item in state:
+                state[item] = {}
+            state = state[item]
         for key in values:
             if not key in state or not state[key] == values[key] or changed:
-                assignable = get_value(values[key])
+                v = values[key]
+                assignable = get_value(v)
 
                 old_value = None
                 if key in state:
@@ -153,8 +155,10 @@ class AutomationContext(object):
             job()
             self.job_queue.task_done()
 
-    def async_perform(self, fun):
-        self.job_queue.put(fun)
+    def async_perform(self, fun, *args, **kwargs):
+        schfun = functools.partial(fun, *args, **kwargs)
+        functools.update_wrapper(schfun, fun)
+        self.job_queue.put(schfun)
 
     def publishValues(self, path, values, changed = True):
         self.publish_queue.put([path, values, changed])

@@ -21,7 +21,7 @@ class AnInput(object):
     def publish(self, value, name = None):
         if not self.started: return
 
-        if name:
+        if name is not None:
             # publish it under the specificed name (for 'all-inputs kind of setup')
             self.context.publishInputValues(name, value)
         else:

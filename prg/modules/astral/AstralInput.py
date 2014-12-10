@@ -30,11 +30,12 @@ class AstralInput(AnInput):
         if time < now:
             time = sunTomorrow[type]
         schedule_time = "%d:%d" % (time.hour, time.minute)
-        self.schedules[type] = schedule.every().day.at(schedule_time).do(self.__update__, type)
+        self.schedules[type] = schedule.every().day.at(schedule_time).do(self.context.async_perform, self.__update__, type)
 
     def __update__(self, type):
-        self.publish(type)
+        self.publish({'state': type})
         schedule.cancel_job(self.schedules[type])
+        self.__schedule_next__(type)
 
     def stop(self):
         super(AstralInput, self).stop()
