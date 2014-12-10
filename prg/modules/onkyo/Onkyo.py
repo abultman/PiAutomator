@@ -63,6 +63,7 @@ converters = {
         "28":"INTERNET RADIO",
         "29":"USB-USB-Front",
         "2A":"USB-Rear",
+        "2B":"Net",
         "40":"Universal-PORT",
         "30":"MULTI-CH",
         "31":"XM1",
