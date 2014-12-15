@@ -83,15 +83,15 @@ inputs:
      device: h_t_sensor
      scale: 0.1
 
-   #Special pilight input. If you define this one, it will be the default for all pilight events if there is
-   #no specific one for the given location and device.
-   #Values are made available for rules under pilight.<location>.<device>.<metric>
-   # for instance pilight.livingroom.christmastree.state
-   # or pilight.bathrool.h_t_sensor.humidity etc
-   all-pilight:
-     type: pilight
-     location: all
-     device: all
+  #Special pilight input. If you define this one, it will be the default for all pilight events if there is
+  #no specific one for the given location and device.
+  #Values are made available for rules under pilight.<location>.<device>.<metric>
+  # for instance pilight.livingroom.christmastree.state
+  # or pilight.bathrool.h_t_sensor.humidity etc
+  all-pilight:
+    type: pilight
+    location: all
+    device: all
 
 rules:
   - when bathroom.humidity is greater than 57 then turn homefan on and send notification "Homefan is on" and print echosomething on
