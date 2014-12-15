@@ -62,7 +62,7 @@ class pilight_input(AnInput):
 
     def update_raw(self, data):
         # {"code":{"id":11449862,"unit":0,"state":"up"},"origin":"receiver","protocol":"archtech_screens","repeats":2}
-        __logger__.info(data)
+        __logger__.debug(data)
         if 'protocol' in data and 'code' in data:
             try:
                 wrapped_data = LocalSettings(data['code'])
@@ -191,7 +191,6 @@ class pilightDaemon(object):
 
     def process_raw_message(self, message):
         if 'protocol' in message and message['protocol'] in self.raw_protocols:
-            __logger__.info('looking for protocol %s', message)
             self.send_to_all(message, 'raw')
 
     def process_config_message(self, message):
