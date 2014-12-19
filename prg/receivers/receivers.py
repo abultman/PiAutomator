@@ -28,9 +28,12 @@ class Receiver(object):
         if override or not self.overrideMode():
             state = self.get_state()
             if always_fire or not self.maintain_state or state != incoming_state or state == None:
-                self.perform_for_state(verb, incoming_state)
-                __logger__.info("%s %s %s" % (verb, self.name, incoming_state))
-                self.set_state(incoming_state)
+                try:
+                    self.perform_for_state(verb, incoming_state)
+                    __logger__.info("%s %s %s" % (verb, self.name, incoming_state))
+                    self.set_state(incoming_state)
+                except:
+                    pass
         else:
             logging.debug(
                 "Receiver %s is in override mode, only rules with override can change it's state now" % self.name)
