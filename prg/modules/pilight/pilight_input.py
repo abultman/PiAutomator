@@ -198,15 +198,21 @@ class pilightDaemon(object):
         __logger__.info("Configuration of pilight\n%s", config)
 
     def process_message(self, messagestr):
-        if messagestr == '\n': return
-        __logger__.debug("message: '" + messagestr + "'")
-        message = json.loads(messagestr)
-        if 'devices' in message:
-            self.process_device_message(message)
-        elif 'config' in message:
-            self.process_config_message(message)
-        else:
-            self.process_raw_message(message)
+        try:
+            if messagestr == '\n': return
+            __logger__.debug("message: '" + messagestr + "'")
+            message = json.loads(messagestr)
+            if 'devices' in message:
+                self.process_device_message(message)
+            elif 'config' in message:
+                self.process_config_message(message)
+            else:
+                self.process_raw_message(message)
+        except Exception, e:
+            __logger__.error("Exception while processing message")
+            __logger__.error(messagestr)
+            __logger__.error(e)
+            pass
 
     def send_to_all(self, message, key):
         if 'all.all' in pilight_sensors:
