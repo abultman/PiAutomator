@@ -212,7 +212,7 @@ class pilightDaemon(object):
             __logger__.error("Exception while processing message")
             __logger__.error(messagestr)
             __logger__.error(e)
-            pass
+            raise e
 
     def send_to_all(self, message, key):
         if 'all.all' in pilight_sensors:
