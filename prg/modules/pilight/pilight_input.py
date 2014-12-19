@@ -109,7 +109,7 @@ class pilightDaemon(object):
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((self.host, self.port))
             self.socket.send(json.dumps({'message': 'client gui'}))
-            self.socket.send(json.dumps({'message': 'request config'}))
+            #self.socket.send(json.dumps({'message': 'request config'}))
             self.send_to_all({'values': {'state': 'up'}}, 'connection')
             __logger__.info("Starting in receiving mode for pilight")
         except:
@@ -147,7 +147,7 @@ class pilightDaemon(object):
                 pass
             self.socket = None
             self.send_to_all({'values': {'state': 'down'}}, 'connection')
-            __logger__.info("raw input terminated, pilight down?")
+            __logger__.info("input terminated, pilight down?")
 
         while True:
             self.connect_gui()
@@ -200,12 +200,10 @@ class pilightDaemon(object):
     def process_message(self, messagestr):
         try:
             if messagestr == '\n': return
-            __logger__.debug("message: '" + messagestr + "'")
             message = json.loads(messagestr)
-            if 'devices' in message:
-                self.process_device_message(message)
-            elif 'config' in message:
-                self.process_config_message(message)
+            if 'origin' in message and message['origin'] == 'config':
+                if 'devices' in message:
+                    self.process_device_message(message)
             else:
                 self.process_raw_message(message)
         except Exception, e:
