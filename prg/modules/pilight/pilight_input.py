@@ -201,6 +201,7 @@ class pilightDaemon(object):
         try:
             if messagestr == '\n': return
             message = json.loads(messagestr)
+            message = message[message.index('{'):message.rindex('}') + 1]
             if 'origin' in message and message['origin'] == 'config':
                 if 'devices' in message:
                     self.process_device_message(message)
