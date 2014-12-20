@@ -204,6 +204,8 @@ class pilightDaemon(object):
             if 'origin' in message and message['origin'] == 'config':
                 if 'devices' in message:
                     self.process_device_message(message)
+                elif 'values' in message and 'cpu' in message['values']:
+                    self.send_to_all(message, 'dev')
             elif 'config' in message:
                 self.process_config_message(message)
             else:
